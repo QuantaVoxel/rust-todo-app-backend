@@ -7,6 +7,7 @@ use crate::modules::user::service;
 use salvo::hyper::StatusCode;
 use salvo::prelude::*;
 use sea_orm::prelude::Uuid;
+use serde_json::json;
 
 #[handler]
 pub async fn get_all_user(req: &mut Request, res: &mut Response) -> Result<(), ApiError> {
@@ -84,10 +85,33 @@ pub async fn edit_user(req: &mut Request, res: &mut Response) -> Result<(), ApiE
 }
 
 #[handler]
-pub async fn delete_user(req: &mut Request, res: &mut Response) {}
+pub async fn delete_user(req: &mut Request, res: &mut Response) -> Result<(), ApiError> {
+    let user_id = req
+        .param::<Uuid>("user_id")
+        .ok_or_else(|| ApiError::not_found("User not found"))?;
+
+    let db = get_db();
+
+    service::delete_user(db, user_id).await?;
+
+    res.render(Json(json!({
+        "message" : "Data user berhasil dihapus"
+    })));
+
+    Ok(())
+}
+
 #[handler]
-pub async fn get_user_tasks(req: &mut Request, res: &mut Response) {}
+pub async fn get_user_tasks(req: &mut Request, res: &mut Response) {
+    todo!()
+}
+
 #[handler]
-pub async fn get_user_task_comments(req: &mut Request, res: &mut Response) {}
+pub async fn get_user_task_comments(req: &mut Request, res: &mut Response) {
+    todo!()
+}
+
 #[handler]
-pub async fn get_user_task_sharings(req: &mut Request, res: &mut Response) {}
+pub async fn get_user_task_sharings(req: &mut Request, res: &mut Response) {
+    todo!()
+}

@@ -120,7 +120,7 @@ pub async fn edit_user(
         .await
         .map_err(|_| ApiError::internal_server_error("Gagal mengakses database"))?
         .ok_or_else(|| ApiError {
-            message: "Data pengguna tidak ditemukan".into(),
+            message: "User not found".into(),
             errors: BTreeMap::new(),
             status: StatusCode::NOT_FOUND,
         })?;
@@ -164,6 +164,37 @@ pub async fn edit_user(
             Err(ApiError::internal_server_error(
                 "Gagal menyimpan data pengguna ke database.",
             ))
+        }
+    }
+}
+
+pub async fn delete_user(db: &DatabaseConnection, id: Uuid) -> Result<(), ApiError> {
+    let user = Users::find_by_id(id)
+        .one(db)
+        .await
+        .map_err(|_| ApiError::internal_server_error("Gagal terhubung ke database"))?
+        .ok_or_else(|| ApiError {
+            message: "User not found".to_string(),
+            errors: BTreeMap::new(),
+            status: StatusCode::NOT_FOUND,
+        })?;
+
+    let active_user: users::ActiveModel = user.into();
+
+    let delete_result = active_user.delete(db).await;
+
+    match delete_result {
+        Ok(_) => Ok(()),
+        Err(error) => {
+            let err_msg = error.to_string().to_lowercase();
+            let mut errors = BTreeMap::new();
+            errors.insert("database".to_string(), vec![err_msg]);
+
+            Err(ApiError {
+                message: "Gagal menghapus data pengguna".into(),
+                errors,
+                status: StatusCode::INTERNAL_SERVER_ERROR, // 500
+            })
         }
     }
 }
