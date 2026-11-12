@@ -1,11 +1,13 @@
 use crate::models::users;
 use chrono::NaiveDateTime;
+use salvo::prelude::Extractible;
 use scrutiny::Validate;
 use sea_orm::prelude::Uuid;
 use serde::{Deserialize, Serialize};
 
 
-#[derive(Serialize, Deserialize, Debug, Validate)]
+#[derive(Serialize, Deserialize, Debug, Validate,Extractible)]
+#[salvo(extract(default_source(from = "body")))]
 pub struct CreateUserDto {
     #[validate(required, email)]
     pub email: String,
@@ -16,6 +18,20 @@ pub struct CreateUserDto {
     #[validate(nullable, max = 50)]
     pub last_name: Option<String>,
     #[validate(nullable, min = 10)]
+    pub phone_number: Option<String>,
+}
+
+
+#[derive(Serialize, Deserialize, Debug, Validate,Extractible)]
+#[salvo(extract(default_source(from = "body")))]
+pub struct UpdateUserDto {
+    #[validate(filled,email)]
+    pub email: Option<String>,
+    #[validate(filled, max = 50)]
+    pub first_name: Option<String>,
+    #[validate(filled, max = 50)]
+    pub last_name: Option<String>,
+    #[validate(filled, min = 10)]
     pub phone_number: Option<String>,
 }
 

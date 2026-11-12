@@ -30,6 +30,14 @@ impl ApiError {
             status: StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
+    
+    pub fn not_found(message: impl Into<String>) -> ApiError {
+        Self{
+            message: message.into(),
+            errors: BTreeMap::new(),
+            status: StatusCode::NOT_FOUND,
+        }
+    }
 
     pub fn new(
         status: StatusCode,

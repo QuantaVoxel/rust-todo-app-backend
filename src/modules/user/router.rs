@@ -1,5 +1,5 @@
-use salvo::Router;
 use crate::modules::user::handler::*;
+use salvo::Router;
 
 pub fn user_routes() -> Router {
 
@@ -8,7 +8,7 @@ pub fn user_routes() -> Router {
         .post(create_user)
         .push(
             Router::with_path("{user_id}")
-                .get(get_user)
+                .get(get_user_by_id)
                 .patch(edit_user)
                 .delete(delete_user)
                 .push(Router::with_path("tasks").get(get_user_tasks))
