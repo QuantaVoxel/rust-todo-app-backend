@@ -13,8 +13,8 @@ pub async fn init_pool() -> Result<DatabaseConnection, DbErr> {
         .min_connections(5)
         .connect_timeout(Duration::from_secs(8))
         .acquire_timeout(Duration::from_secs(8))
-        .idle_timeout(Duration::from_secs(8))
-        .max_lifetime(Duration::from_secs(8))
+        .idle_timeout(Duration::from_secs(1 * 60))
+        .max_lifetime(Duration::from_secs(1 * 60 * 60))
         .sqlx_logging(false) // disable SQLx logging
         .sqlx_logging_level(log::LevelFilter::Info);
 

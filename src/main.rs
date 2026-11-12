@@ -1,12 +1,12 @@
-mod core;
-mod modules;
-mod infrastructure;
+
+use todo_app::{infrastructure,core};
+use migration::{Migrator, MigratorTrait};
 
 use dotenv::dotenv;
 use salvo::prelude::*;
 use std::env;
 use std::net::SocketAddr;
-use salvo::__private::tracing;
+
 
 #[tokio::main]
 async fn main() {
@@ -24,6 +24,11 @@ async fn main() {
 
     let db = infrastructure::db::init_pool().await.expect("Failed to Connect Database");
 
+    Migrator::up(&db, None)
+        .await
+        .expect("Proses migrasi database gagal");
+
+    tracing::info!("Migrasi database selesai diterapkan.");
 
     let acceptor = TcpListener::new(socket_addr).bind().await;
     let router : Router = Router::new()
