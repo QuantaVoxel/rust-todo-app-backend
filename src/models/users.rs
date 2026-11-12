@@ -13,6 +13,7 @@ pub struct Model {
     pub password: String,
     pub first_name: String,
     pub last_name: Option<String>,
+    pub phone_number: Option<String>,
     pub created_at: DateTime,
     pub updated_at: DateTime,
 }

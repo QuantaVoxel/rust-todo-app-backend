@@ -22,6 +22,14 @@ impl ApiError {
             status: StatusCode::BAD_REQUEST,
         }
     }
+    
+    pub fn internal_server_error(message: impl Into<String>) -> ApiError {
+        Self {
+            message: message.into(),
+            errors: BTreeMap::new(),
+            status: StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
 
     pub fn new(
         status: StatusCode,

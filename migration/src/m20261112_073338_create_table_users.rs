@@ -23,6 +23,7 @@ impl MigrationTrait for Migration {
                     .col(string(Users::Password).not_null())
                     .col(string(Users::FirstName).not_null())
                     .col(string(Users::LastName).null())
+                    .col(string(Users::PhoneNumber).null())
                     .col(timestamp(Users::CreatedAt).default(Expr::current_timestamp()).not_null())
                     .col(timestamp(Users::UpdatedAt).default(Expr::current_timestamp()).not_null())
                     .to_owned(),
