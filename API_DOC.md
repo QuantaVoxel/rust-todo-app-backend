@@ -1,6 +1,6 @@
 # Todo App REST API Documentation (v1)
 
-Dokumentasi resmi endpoint API untuk **Auth Module** dan **User Module (Users, Profile, Settings)** pada Todo App v2 backend yang dibangun menggunakan framework **Salvo** dan ORM **SeaORM 2.0**.
+Dokumentasi resmi seluruh endpoint REST API (88 endpoint pada 20 modul) untuk Todo App v2 backend yang dibangun menggunakan framework **Salvo** dan ORM **SeaORM 2.0**. Modul mencakup Auth, Users & Profiles, Settings, Tasks Core, Subtasks, Notes, Comments, Attachments, Reminders, Recurring Tasks, Locations, Sharing, Votes, Klasifikasi (Tags, Categories, Labels), Audit History, Integrasi Eksternal, Koneksi Pengguna, Notifikasi, Log Aktivitas, serta Data Referensi (Lookups).
 
 ---
 
@@ -577,7 +577,670 @@ Authorization: Bearer <access_token>
 
 ---
 
-## 4. Contoh Alur Lengkap (End-to-End Walkthrough)
+## 4. Tasks Core Module
+
+Semua endpoint task membutuhkan header:
+```http
+Authorization: Bearer <access_token>
+```
+
+Aturan Hak Akses:
+- **Owner** (`tasks.user_id = user_id`): Akses penuh (baca, ubah, hapus, arsip/unarsip, ubah sharing).
+- **Shared Edit** (`permission = "edit"`): Baca, ubah status/prioritas/progress.
+- **Shared Comment** (`permission = "comment"`): Baca dan komentar.
+- **Shared View** (`permission = "view"`): Hanya membaca.
+
+---
+
+### 4.1 Daftar Task (List Tasks with Filter & Pagination)
+Mengambil daftar task milik user atau yang dibagikan kepada user.
+
+- **Method**: `GET`
+- **Endpoint**: `/tasks`
+- **Auth**: Bearer Token
+
+#### Query Parameters
+| Parameter | Tipe | Default | Keterangan |
+| :--- | :--- | :--- | :--- |
+| `scope` | String | `all` | `owned` (hanya milik sendiri), `shared` (hanya dibagikan), atau `all` |
+| `archived` | Bool | `false` | `false` (task aktif), `true` (task diarsipkan) |
+| `status_id` | Integer | - | Filter berdasarkan status ID |
+| `priority_id` | Integer | - | Filter berdasarkan prioritas ID |
+| `tag_id` | Integer | - | Filter berdasarkan tag ID |
+| `due_before` | DateTime | - | Rentang due date sebelum (ISO 8601) |
+| `due_after` | DateTime | - | Rentang due date setelah (ISO 8601) |
+| `search` | String | - | Pencarian kata kunci pada judul & deskripsi |
+| `sort` | String | `-task_id` | `due_date`, `-due_date`, `created_at`, `-created_at`, `priority`, `-priority` |
+| `page` | Integer | `1` | Nomor halaman (mulai dari 1) |
+| `per_page` | Integer | `20` | Jumlah data per halaman (1–100) |
+
+#### Contoh Request
+```http
+GET /api/v1/tasks?status_id=1&search=laporan&page=1&per_page=10
+Authorization: Bearer <access_token>
+```
+
+#### Response `200 OK`
+```json
+{
+  "data": [
+    {
+      "task_id": 42,
+      "user_id": 1,
+      "title": "Siapkan laporan bulanan",
+      "description": "Kumpulkan data penjualan Q3",
+      "status_id": 1,
+      "status": "pending",
+      "priority_id": 3,
+      "priority": "high",
+      "progress_percentage": 40,
+      "due_date": "2026-11-20T09:00:00Z",
+      "archived_at": null,
+      "created_at": "2026-11-16T14:00:00Z",
+      "updated_at": "2026-11-16T14:30:00Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "per_page": 10,
+    "total": 1,
+    "total_pages": 1
+  }
+}
+```
+
+---
+
+### 4.2 Buat Task Baru
+Membuat task baru. Pembuat otomatis menjadi owner task.
+
+- **Method**: `POST`
+- **Endpoint**: `/tasks`
+- **Auth**: Bearer Token
+
+#### Request Body
+```json
+{
+  "title": "Siapkan laporan bulanan",
+  "description": "Kumpulkan data penjualan Q3",
+  "status_id": 1,
+  "priority_id": 3,
+  "progress_percentage": 0,
+  "due_date": "2026-11-20T09:00:00Z",
+  "tag_ids": [1, 2]
+}
+```
+
+#### Response `201 CREATED`
+```json
+{
+  "task_id": 42,
+  "user_id": 1,
+  "title": "Siapkan laporan bulanan",
+  "description": "Kumpulkan data penjualan Q3",
+  "status_id": 1,
+  "status": "pending",
+  "priority_id": 3,
+  "priority": "high",
+  "progress_percentage": 0,
+  "due_date": "2026-11-20T09:00:00Z",
+  "archived_at": null,
+  "created_at": "2026-11-16T14:00:00Z",
+  "updated_at": "2026-11-16T14:00:00Z"
+}
+```
+
+---
+
+### 4.3 Detail Task
+Mengambil detail informasi task berdasarkan ID.
+
+- **Method**: `GET`
+- **Endpoint**: `/tasks/{task_id}`
+- **Auth**: Bearer Token
+
+#### Response `200 OK`
+```json
+{
+  "data": {
+    "task_id": 42,
+    "user_id": 1,
+    "title": "Siapkan laporan bulanan",
+    "description": "Kumpulkan data penjualan Q3",
+    "status_id": 1,
+    "status": "pending",
+    "priority_id": 3,
+    "priority": "high",
+    "progress_percentage": 0,
+    "due_date": "2026-11-20T09:00:00Z",
+    "archived_at": null,
+    "created_at": "2026-11-16T14:00:00Z",
+    "updated_at": "2026-11-16T14:00:00Z"
+  }
+}
+```
+
+---
+
+### 4.4 Update Task (Partial Update)
+Mengubah field pada task (`title`, `description`, `status_id`, `priority_id`, `due_date`).
+Perubahan `status_id` otomatis mencatat riwayat ke `task_history`. Perubahan `priority_id` otomatis mencatat riwayat ke `task_priority_history`.
+
+- **Method**: `PATCH`
+- **Endpoint**: `/tasks/{task_id}`
+- **Auth**: Bearer Token
+
+#### Request Body
+```json
+{
+  "status_id": 2,
+  "priority_id": 4,
+  "due_date": "2026-11-25T17:00:00Z"
+}
+```
+
+#### Response `200 OK`
+```json
+{
+  "data": {
+    "task_id": 42,
+    "user_id": 1,
+    "title": "Siapkan laporan bulanan",
+    "description": "Kumpulkan data penjualan Q3",
+    "status_id": 2,
+    "status": "in_progress",
+    "priority_id": 4,
+    "priority": "urgent",
+    "progress_percentage": 0,
+    "due_date": "2026-11-25T17:00:00Z",
+    "archived_at": null,
+    "created_at": "2026-11-16T14:00:00Z",
+    "updated_at": "2026-11-16T14:40:00Z"
+  }
+}
+```
+
+---
+
+### 4.5 Hapus Task
+Menghapus task. Hanya pemilik (*owner*) yang dapat menghapus task. Seluruh relasi anak (subtask, notes, comments, reminders, dll.) terhapus otomatis via cascade.
+
+- **Method**: `DELETE`
+- **Endpoint**: `/tasks/{task_id}`
+- **Auth**: Bearer Token (Owner saja)
+
+#### Response `200 OK`
+```json
+{
+  "data": "Task berhasil dihapus"
+}
+```
+
+#### Response `403 FORBIDDEN` (Bila bukan owner)
+```json
+{
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "Hanya pemilik task yang dapat menghapus task",
+    "details": null
+  }
+}
+```
+
+---
+
+### 4.6 Arsipkan Task
+Mengarsipkan task aktif (`archived_at` diisi timestamp saat ini).
+
+- **Method**: `POST`
+- **Endpoint**: `/tasks/{task_id}/archive`
+- **Auth**: Bearer Token (Owner saja)
+
+#### Response `200 OK`
+```json
+{
+  "data": {
+    "task_id": 42,
+    "archived_at": "2026-11-16T14:45:00Z"
+  }
+}
+```
+
+---
+
+### 4.7 Batalkan Arsip Task
+Mengaktifkan kembali task yang diarsipkan (`archived_at` diset `null`).
+
+- **Method**: `POST`
+- **Endpoint**: `/tasks/{task_id}/unarchive`
+- **Auth**: Bearer Token (Owner saja)
+
+#### Response `200 OK`
+```json
+{
+  "data": {
+    "task_id": 42,
+    "archived_at": null
+  }
+}
+```
+
+---
+
+### 4.8 Update Progress Task
+Mengubah persentase kemajuan task (0–100).
+
+- **Method**: `PUT`
+- **Endpoint**: `/tasks/{task_id}/progress`
+- **Auth**: Bearer Token (Owner atau Edit)
+
+#### Request Body
+```json
+{
+  "progress_percentage": 75
+}
+```
+
+#### Response `200 OK`
+```json
+{
+  "data": {
+    "task_id": 42,
+    "progress_percentage": 75
+  }
+}
+```
+
+---
+
+## 5. Data Referensi (Lookup Module)
+
+Endpoint referensi bersifat public / read-only untuk mengambil data enumerasi dan lookup master.
+
+### 5.1 Daftar Status Task
+- **Method**: `GET`
+- **Endpoint**: `/statuses`
+- **Auth**: Public
+
+#### Response `200 OK`
+```json
+{
+  "data": [
+    { "status_id": 1, "name": "pending" },
+    { "status_id": 2, "name": "in_progress" },
+    { "status_id": 3, "name": "completed" },
+    { "status_id": 4, "name": "cancelled" }
+  ]
+}
+```
+
+---
+
+### 5.2 Daftar Prioritas Task
+- **Method**: `GET`
+- **Endpoint**: `/priorities`
+- **Auth**: Public
+
+#### Response `200 OK`
+```json
+{
+  "data": [
+    { "priority_id": 1, "name": "low", "rank_order": 1 },
+    { "priority_id": 2, "name": "medium", "rank_order": 2 },
+    { "priority_id": 3, "name": "high", "rank_order": 3 },
+    { "priority_id": 4, "name": "urgent", "rank_order": 4 }
+  ]
+}
+```
+
+---
+
+### 5.3 Daftar External Apps
+- **Method**: `GET`
+- **Endpoint**: `/external-apps`
+- **Auth**: Public
+
+#### Response `200 OK`
+```json
+{
+  "data": [
+    { "app_id": 1, "name": "Trello" },
+    { "app_id": 2, "name": "Jira" },
+    { "app_id": 3, "name": "GitHub" },
+    { "app_id": 4, "name": "Slack" }
+  ]
+}
+```
+
+---
+
+### 5.4 Daftar Nilai Enum
+- **Method**: `GET`
+- **Endpoint**: `/enums`
+- **Auth**: Public
+
+#### Response `200 OK`
+```json
+{
+  "data": {
+    "connection_status": ["pending", "accepted", "blocked"],
+    "frequency": ["daily", "weekly", "monthly", "yearly"],
+    "notification_type": ["reminder", "comment", "share", "system"],
+    "permission": ["view", "comment", "edit"],
+    "vote_type": ["up", "down"]
+  }
+}
+```
+
+---
+
+## 6. Subtasks Module
+
+Subtask menggunakan `status_id` yang sama dengan referensi `task_statuses`.
+
+| Method | Endpoint | Deskripsi |
+| :--- | :--- | :--- |
+| `GET` | `/tasks/{task_id}/subtasks` | Daftar subtask milik task |
+| `POST` | `/tasks/{task_id}/subtasks` | Tambah subtask baru |
+| `PATCH` | `/subtasks/{subtask_id}` | Ubah judul (`title`) atau status (`status_id`) |
+| `DELETE` | `/subtasks/{subtask_id}` | Hapus subtask |
+
+#### Request Body `POST /tasks/{task_id}/subtasks`
+```json
+{
+  "title": "Kumpulkan bukti transaksi",
+  "status_id": 1
+}
+```
+
+---
+
+## 7. Notes & Note History Module
+
+Catatan internal pada task. Setiap perubahan teks note otomatis dicatat ke riwayat `task_notes_history`.
+
+| Method | Endpoint | Deskripsi |
+| :--- | :--- | :--- |
+| `GET` | `/tasks/{task_id}/notes` | Daftar catatan pada task |
+| `POST` | `/tasks/{task_id}/notes` | Tambah catatan baru |
+| `PATCH` | `/notes/{note_id}` | Ubah teks catatan |
+| `DELETE` | `/notes/{note_id}` | Hapus catatan |
+| `GET` | `/notes/{note_id}/history` | Riwayat versi isi catatan sebelumnya |
+
+#### Request Body `POST /tasks/{task_id}/notes`
+```json
+{
+  "content": "Data penjualan ada di folder Google Drive Q3"
+}
+```
+
+---
+
+## 8. Comments Module
+
+Komentar kolaborasi pada task (membutuhkan izin `comment` atau lebih tinggi).
+
+| Method | Endpoint | Deskripsi |
+| :--- | :--- | :--- |
+| `GET` | `/tasks/{task_id}/comments` | Daftar komentar pada task |
+| `POST` | `/tasks/{task_id}/comments` | Kirim komentar baru |
+| `PATCH` | `/comments/{comment_id}` | Ubah isi komentar (penulis saja) |
+| `DELETE` | `/comments/{comment_id}` | Hapus komentar (penulis atau task owner) |
+
+#### Request Body `POST /tasks/{task_id}/comments`
+```json
+{
+  "comment": "Sudah saya periksa, data valid."
+}
+```
+
+---
+
+## 9. Attachments Module
+
+Lampiran dokumen atau file pendukung pada task.
+
+| Method | Endpoint | Deskripsi |
+| :--- | :--- | :--- |
+| `GET` | `/tasks/{task_id}/attachments` | Daftar lampiran file |
+| `POST` | `/tasks/{task_id}/attachments` | Unggah lampiran (`multipart/form-data`) |
+| `DELETE` | `/attachments/{attachment_id}` | Hapus lampiran |
+
+---
+
+## 10. Reminders Module
+
+Pengingat waktu untuk task.
+
+| Method | Endpoint | Deskripsi |
+| :--- | :--- | :--- |
+| `GET` | `/tasks/{task_id}/reminders` | Daftar pengingat task |
+| `POST` | `/tasks/{task_id}/reminders` | Pasang pengingat baru |
+| `PATCH` | `/reminders/{reminder_id}` | Ubah waktu pengingat (`reminder_time`) |
+| `DELETE` | `/reminders/{reminder_id}` | Hapus pengingat |
+
+#### Request Body `POST /tasks/{task_id}/reminders`
+```json
+{
+  "reminder_time": "2026-11-20T08:00:00Z"
+}
+```
+
+---
+
+## 11. Recurring Tasks Module
+
+Aturan pengulangan task berulang (relasi 1:1).
+
+| Method | Endpoint | Deskripsi |
+| :--- | :--- | :--- |
+| `GET` | `/tasks/{task_id}/recurrence` | Ambil aturan perulangan task |
+| `PUT` | `/tasks/{task_id}/recurrence` | Buat atau ubah aturan perulangan |
+| `DELETE` | `/tasks/{task_id}/recurrence` | Hapus aturan perulangan |
+
+#### Request Body `PUT /tasks/{task_id}/recurrence`
+```json
+{
+  "frequency": "weekly",
+  "next_due_date": "2026-11-27T09:00:00Z"
+}
+```
+*(Nilai `frequency`: `daily`, `weekly`, `monthly`, `yearly`)*.
+
+---
+
+## 12. Locations Module
+
+Master data lokasi koordinat dan relasi lokasinya dengan task.
+
+| Method | Endpoint | Deskripsi |
+| :--- | :--- | :--- |
+| `GET` | `/locations` | Daftar master lokasi |
+| `POST` | `/locations` | Buat lokasi (idempoten berdasarkan lat/long) |
+| `GET` | `/tasks/{task_id}/locations` | Daftar lokasi milik task |
+| `PUT` | `/tasks/{task_id}/locations/{location_id}` | Tautkan lokasi ke task |
+| `DELETE` | `/tasks/{task_id}/locations/{location_id}` | Lepas tautan lokasi dari task |
+
+#### Request Body `POST /locations`
+```json
+{
+  "location_name": "Kantor Pusat Makassar",
+  "latitude": -5.1477,
+  "longitude": 119.4327
+}
+```
+
+---
+
+## 13. Sharing & Collaboration Module
+
+Pengelolaan kolaborasi dan hak akses task kepada user lain (hanya owner task yang dapat mengelola).
+
+| Method | Endpoint | Deskripsi |
+| :--- | :--- | :--- |
+| `GET` | `/tasks/{task_id}/shares` | Daftar user yang diberi izin akses |
+| `PUT` | `/tasks/{task_id}/shares/{user_id}` | Beri atau ubah level izin (upsert) |
+| `DELETE` | `/tasks/{task_id}/shares/{user_id}` | Cabut izin akses user |
+
+#### Request Body `PUT /tasks/{task_id}/shares/{user_id}`
+```json
+{
+  "permission": "edit"
+}
+```
+*(Nilai `permission`: `view`, `comment`, `edit`)*.
+
+---
+
+## 14. Votes Module
+
+Sistem voting komunitas/tim pada task. Satu user hanya memiliki satu vote per task (`up` atau `down`).
+
+| Method | Endpoint | Deskripsi |
+| :--- | :--- | :--- |
+| `GET` | `/tasks/{task_id}/votes` | Ringkasan vote (`up`, `down`, `my_vote`) |
+| `PUT` | `/tasks/{task_id}/vote` | Beri / perbarui vote user login |
+| `DELETE` | `/tasks/{task_id}/vote` | Hapus vote user login |
+
+#### Request Body `PUT /tasks/{task_id}/vote`
+```json
+{
+  "vote_type": "up"
+}
+```
+
+---
+
+## 15. Klasifikasi: Tags, Categories, Labels
+
+Manajemen klasifikasi dan penautannya ke task.
+
+### 15.1 Tags
+- `GET /tags` — Daftar tag
+- `POST /tags` — Buat tag baru (`name` unik)
+- `PATCH /tags/{tag_id}` — Ubah nama tag
+- `DELETE /tags/{tag_id}?force=true` — Hapus tag (gunakan `?force=true` jika masih ditautkan ke task)
+- `PUT /tasks/{task_id}/tags/{tag_id}` — Pasang tag ke task
+- `DELETE /tasks/{task_id}/tags/{tag_id}` — Lepas tag dari task
+
+### 15.2 Categories
+- `GET /categories` — Daftar kategori
+- `POST /categories` — Buat kategori (`name`, `description`)
+- `PATCH /categories/{category_id}` — Ubah kategori
+- `DELETE /categories/{category_id}?force=true` — Hapus kategori
+- `PUT /tasks/{task_id}/categories/{category_id}` — Pasang kategori ke task
+- `DELETE /tasks/{task_id}/categories/{category_id}` — Lepas kategori dari task
+
+### 15.3 Labels
+- `GET /labels` — Daftar label
+- `POST /labels` — Buat label (`name` unik)
+- `PATCH /labels/{label_id}` — Ubah nama label
+- `DELETE /labels/{label_id}?force=true` — Hapus label
+- `PUT /tasks/{task_id}/labels/{label_id}` — Pasang label ke task (otomatis mencatat ke `task_labels_history`)
+- `DELETE /tasks/{task_id}/labels/{label_id}` — Lepas label dari task (otomatis mencatat ke `task_labels_history`)
+
+---
+
+## 16. Audit History Module (Read-only)
+
+Riwayat perubahan status, prioritas, dan label dicatat otomatis oleh server dan bersifat read-only.
+
+| Method | Endpoint | Deskripsi |
+| :--- | :--- | :--- |
+| `GET` | `/tasks/{task_id}/history/status` | Riwayat perubahan status (`task_history`) |
+| `GET` | `/tasks/{task_id}/history/priority` | Riwayat perubahan prioritas (`task_priority_history`) |
+| `GET` | `/tasks/{task_id}/history/labels` | Riwayat pemasangan & pelepasan label (`task_labels_history`) |
+
+---
+
+## 17. Integrasi Eksternal Module
+
+Menghubungkan task lokal dengan task pada aplikasi eksternal (Trello, Jira, GitHub, Slack).
+
+| Method | Endpoint | Deskripsi |
+| :--- | :--- | :--- |
+| `GET` | `/tasks/{task_id}/integrations` | Daftar integrasi task |
+| `POST` | `/tasks/{task_id}/integrations` | Hubungkan task ke aplikasi lain |
+| `DELETE` | `/integrations/{integration_id}` | Putuskan integrasi |
+
+#### Request Body `POST /tasks/{task_id}/integrations`
+```json
+{
+  "app_id": 1,
+  "external_app_task_id": "TRELLO-9812"
+}
+```
+
+---
+
+## 18. Koneksi Antar-User Module
+
+Hubungan pertemanan/koneksi antar pengguna.
+
+| Method | Endpoint | Deskripsi |
+| :--- | :--- | :--- |
+| `GET` | `/connections?status=` | Daftar koneksi user (`pending`, `accepted`, `blocked`) |
+| `POST` | `/connections` | Kirim permintaan koneksi baru |
+| `PATCH` | `/connections/{connection_id}` | Terima (`accepted`) atau blokir (`blocked`) |
+| `DELETE` | `/connections/{connection_id}` | Hapus koneksi |
+
+#### Request Body `POST /connections`
+```json
+{
+  "target_user_id": 7
+}
+```
+
+---
+
+## 19. Notifikasi Module
+
+Notifikasi sistem, pengingat, komentar, dan sharing. Dibuat otomatis oleh sistem.
+
+| Method | Endpoint | Deskripsi |
+| :--- | :--- | :--- |
+| `GET` | `/notifications?is_read=` | Daftar notifikasi user login |
+| `GET` | `/notifications/unread-count` | Jumlah notifikasi belum dibaca |
+| `PATCH` | `/notifications/{notification_id}` | Tandai sudah dibaca (`{"is_read": true}`) |
+| `POST` | `/notifications/read-all` | Tandai seluruh notifikasi sudah dibaca |
+| `DELETE` | `/notifications/{notification_id}` | Hapus notifikasi |
+
+---
+
+## 20. Activity Logs Module (Read-only)
+
+Log riwayat audit aktivitas user login (misal: `task.create`, `task.update`, `task.delete`).
+
+- **Method**: `GET`
+- **Endpoint**: `/activity-logs`
+- **Auth**: Bearer Token
+- **Query Parameters**: `entity_type`, `entity_id`, `action`, `from`, `to`, `page`, `per_page`.
+
+#### Response `200 OK`
+```json
+{
+  "data": [
+    {
+      "log_id": 101,
+      "user_id": 1,
+      "action": "task.create",
+      "entity_type": "task",
+      "entity_id": 42,
+      "timestamp": "2026-11-16T14:00:00Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "per_page": 20,
+    "total": 1,
+    "total_pages": 1
+  }
+}
+```
+
+---
+
+## 21. Contoh Alur Lengkap (End-to-End Walkthrough)
 
 ### Langkah 1: Registrasi User Baru
 ```bash

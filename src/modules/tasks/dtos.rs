@@ -1,9 +1,27 @@
+use chrono::{DateTime, Utc};
 use scrutiny::Validate;
 use serde::{Deserialize, Serialize};
 
 // ----------------------------------------------------
 // Task DTOs
 // ----------------------------------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaskResponse {
+    pub task_id: i32,
+    pub user_id: i32,
+    pub title: String,
+    pub description: Option<String>,
+    pub status_id: i32,
+    pub status: Option<String>,
+    pub priority_id: Option<i32>,
+    pub priority: Option<String>,
+    pub progress_percentage: i32,
+    pub due_date: Option<DateTime<Utc>>,
+    pub archived_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct CreateTaskRequest {

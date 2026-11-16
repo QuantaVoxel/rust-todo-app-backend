@@ -267,4 +267,52 @@ mod tests {
         let body = resp.take_string().await.unwrap();
         assert!(body.contains("VALIDATION_ERROR"));
     }
+
+    #[tokio::test]
+    async fn test_create_task_validation_error() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let settings = crate::config::Settings::load();
+        let token = crate::utils::jwt::generate_access_token(1, "testuser", &settings.jwt_secret, 3600).unwrap();
+
+        // Missing required title and status_id
+        let payload = serde_json::json!({
+            "description": "Some description"
+        });
+
+        let mut resp = TestClient::post("http://127.0.0.1:8698/api/v1/tasks")
+            .add_header("Authorization", format!("Bearer {}", token), true)
+            .json(&payload)
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::BAD_REQUEST));
+        let body = resp.take_string().await.unwrap();
+        assert!(body.contains("VALIDATION_ERROR"));
+    }
+
+    #[tokio::test]
+    async fn test_update_progress_validation_error() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let settings = crate::config::Settings::load();
+        let token = crate::utils::jwt::generate_access_token(1, "testuser", &settings.jwt_secret, 3600).unwrap();
+
+        // Progress percentage must be between 0 and 100
+        let payload = serde_json::json!({
+            "progress_percentage": 150
+        });
+
+        let mut resp = TestClient::put("http://127.0.0.1:8698/api/v1/tasks/1/progress")
+            .add_header("Authorization", format!("Bearer {}", token), true)
+            .json(&payload)
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::BAD_REQUEST));
+        let body = resp.take_string().await.unwrap();
+        assert!(body.contains("VALIDATION_ERROR"));
+    }
 }

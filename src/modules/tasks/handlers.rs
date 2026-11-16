@@ -4,6 +4,7 @@ use crate::common::response::ApiResponse;
 use crate::common::validation::parse_and_validate;
 use crate::core::middleware::get_authenticated_user;
 use crate::modules::tasks::dtos::*;
+use crate::modules::tasks::services::TaskService;
 
 // ====================================================
 // Core Tasks Handlers
@@ -11,14 +12,14 @@ use crate::modules::tasks::dtos::*;
 
 #[handler]
 pub async fn list_tasks(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    let _user = match get_authenticated_user(depot) {
+    let user = match get_authenticated_user(depot) {
         Ok(u) => u,
         Err(err) => {
             res.render(err);
             return;
         }
     };
-    let _query = req.parse_queries::<TaskListQuery>().unwrap_or(TaskListQuery {
+    let query = req.parse_queries::<TaskListQuery>().unwrap_or(TaskListQuery {
         status_id: None,
         priority_id: None,
         tag_id: None,
@@ -35,12 +36,15 @@ pub async fn list_tasks(req: &mut Request, depot: &mut Depot, res: &mut Response
         per_page: None,
     });
 
-    res.render(Json(ApiResponse::new(Vec::<String>::new())));
+    match TaskService::list_tasks(user.user_id, query).await {
+        Ok(data) => res.render(Json(data)),
+        Err(err) => res.render(err),
+    }
 }
 
 #[handler]
 pub async fn create_task(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    let _user = match get_authenticated_user(depot) {
+    let user = match get_authenticated_user(depot) {
         Ok(u) => u,
         Err(err) => {
             res.render(err);
@@ -48,7 +52,7 @@ pub async fn create_task(req: &mut Request, depot: &mut Depot, res: &mut Respons
         }
     };
 
-    let _dto = match parse_and_validate::<CreateTaskRequest>(req).await {
+    let dto = match parse_and_validate::<CreateTaskRequest>(req).await {
         Ok(d) => d,
         Err(err) => {
             res.render(err);
@@ -56,13 +60,18 @@ pub async fn create_task(req: &mut Request, depot: &mut Depot, res: &mut Respons
         }
     };
 
-    res.status_code(StatusCode::CREATED);
-    res.render(Json(ApiResponse::new("Task created")));
+    match TaskService::create_task(user.user_id, dto).await {
+        Ok(data) => {
+            res.status_code(StatusCode::CREATED);
+            res.render(Json(data));
+        }
+        Err(err) => res.render(err),
+    }
 }
 
 #[handler]
 pub async fn get_task(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    let _user = match get_authenticated_user(depot) {
+    let user = match get_authenticated_user(depot) {
         Ok(u) => u,
         Err(err) => {
             res.render(err);
@@ -71,21 +80,24 @@ pub async fn get_task(req: &mut Request, depot: &mut Depot, res: &mut Response) 
     };
     let task_id = req.param::<i32>("task_id").unwrap_or_default();
 
-    res.render(Json(ApiResponse::new(format!("Task detail for ID {}", task_id))));
+    match TaskService::get_task(user.user_id, task_id).await {
+        Ok(data) => res.render(Json(ApiResponse::new(data))),
+        Err(err) => res.render(err),
+    }
 }
 
 #[handler]
 pub async fn update_task(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    let _user = match get_authenticated_user(depot) {
+    let user = match get_authenticated_user(depot) {
         Ok(u) => u,
         Err(err) => {
             res.render(err);
             return;
         }
     };
-    let _task_id = req.param::<i32>("task_id").unwrap_or_default();
+    let task_id = req.param::<i32>("task_id").unwrap_or_default();
 
-    let _dto = match parse_and_validate::<UpdateTaskRequest>(req).await {
+    let dto = match parse_and_validate::<UpdateTaskRequest>(req).await {
         Ok(d) => d,
         Err(err) => {
             res.render(err);
@@ -93,63 +105,75 @@ pub async fn update_task(req: &mut Request, depot: &mut Depot, res: &mut Respons
         }
     };
 
-    res.render(Json(ApiResponse::new("Task updated")));
+    match TaskService::update_task(user.user_id, task_id, dto).await {
+        Ok(data) => res.render(Json(ApiResponse::new(data))),
+        Err(err) => res.render(err),
+    }
 }
 
 #[handler]
 pub async fn delete_task(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    let _user = match get_authenticated_user(depot) {
+    let user = match get_authenticated_user(depot) {
         Ok(u) => u,
         Err(err) => {
             res.render(err);
             return;
         }
     };
-    let _task_id = req.param::<i32>("task_id").unwrap_or_default();
+    let task_id = req.param::<i32>("task_id").unwrap_or_default();
 
-    res.render(Json(ApiResponse::new("Task deleted")));
+    match TaskService::delete_task(user.user_id, task_id).await {
+        Ok(_) => res.render(Json(ApiResponse::new("Task berhasil dihapus"))),
+        Err(err) => res.render(err),
+    }
 }
 
 #[handler]
 pub async fn archive_task(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    let _user = match get_authenticated_user(depot) {
+    let user = match get_authenticated_user(depot) {
         Ok(u) => u,
         Err(err) => {
             res.render(err);
             return;
         }
     };
-    let _task_id = req.param::<i32>("task_id").unwrap_or_default();
+    let task_id = req.param::<i32>("task_id").unwrap_or_default();
 
-    res.render(Json(ApiResponse::new("Task archived")));
+    match TaskService::archive_task(user.user_id, task_id).await {
+        Ok(data) => res.render(Json(ApiResponse::new(data))),
+        Err(err) => res.render(err),
+    }
 }
 
 #[handler]
 pub async fn unarchive_task(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    let _user = match get_authenticated_user(depot) {
+    let user = match get_authenticated_user(depot) {
         Ok(u) => u,
         Err(err) => {
             res.render(err);
             return;
         }
     };
-    let _task_id = req.param::<i32>("task_id").unwrap_or_default();
+    let task_id = req.param::<i32>("task_id").unwrap_or_default();
 
-    res.render(Json(ApiResponse::new("Task unarchived")));
+    match TaskService::unarchive_task(user.user_id, task_id).await {
+        Ok(data) => res.render(Json(ApiResponse::new(data))),
+        Err(err) => res.render(err),
+    }
 }
 
 #[handler]
 pub async fn update_progress(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    let _user = match get_authenticated_user(depot) {
+    let user = match get_authenticated_user(depot) {
         Ok(u) => u,
         Err(err) => {
             res.render(err);
             return;
         }
     };
-    let _task_id = req.param::<i32>("task_id").unwrap_or_default();
+    let task_id = req.param::<i32>("task_id").unwrap_or_default();
 
-    let _dto = match parse_and_validate::<UpdateProgressRequest>(req).await {
+    let dto = match parse_and_validate::<UpdateProgressRequest>(req).await {
         Ok(d) => d,
         Err(err) => {
             res.render(err);
@@ -157,7 +181,10 @@ pub async fn update_progress(req: &mut Request, depot: &mut Depot, res: &mut Res
         }
     };
 
-    res.render(Json(ApiResponse::new("Progress updated")));
+    match TaskService::update_progress(user.user_id, task_id, dto).await {
+        Ok(data) => res.render(Json(ApiResponse::new(data))),
+        Err(err) => res.render(err),
+    }
 }
 
 // ====================================================
