@@ -1,0 +1,72 @@
+use sea_orm_migration::{prelude::*, schema::*};
+
+pub struct Migration;
+
+impl MigrationName for Migration {
+    fn name(&self) -> &str {
+        "m20261116_122459_create_task_sharing"
+    }
+}
+
+#[derive(DeriveIden)]
+enum SharePermissionEnum {
+    #[sea_orm(iden = "share_permission_enum")]
+    Enum,
+    #[sea_orm(iden = "view")]
+    View,
+    #[sea_orm(iden = "comment")]
+    Comment,
+    #[sea_orm(iden = "edit")]
+    Edit,
+}
+
+#[async_trait::async_trait]
+impl MigrationTrait for Migration {
+    async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .create_table(
+                Table::create()
+                    .table("task_sharing")
+                    .if_not_exists()
+                    .col(integer("task_id"))
+                    .col(integer("user_id"))
+                    .col(
+                        enumeration(
+                            "permission",
+                            SharePermissionEnum::Enum,
+                            [
+                                SharePermissionEnum::View,
+                                SharePermissionEnum::Comment,
+                                SharePermissionEnum::Edit,
+                            ],
+                        )
+                        .default("view"),
+                    )
+                    .primary_key(Index::create().col("task_id").col("user_id"))
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_task_sharing_task_id")
+                            .from("task_sharing", "task_id")
+                            .to("tasks", "task_id")
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Cascade),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_task_sharing_user_id")
+                            .from("task_sharing", "user_id")
+                            .to("users", "user_id")
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Cascade),
+                    )
+                    .to_owned(),
+            )
+            .await
+    }
+
+    async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .drop_table(Table::drop().table("task_sharing").if_exists().to_owned())
+            .await
+    }
+}
