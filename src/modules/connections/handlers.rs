@@ -1,3 +1,4 @@
+use salvo::oapi::endpoint;
 use salvo::prelude::*;
 
 use crate::common::response::ApiResponse;
@@ -6,7 +7,7 @@ use crate::core::middleware::get_authenticated_user;
 use crate::modules::connections::dtos::*;
 use crate::modules::connections::services::ConnectionService;
 
-#[handler]
+#[endpoint(tags("Connections"), summary = "List user connections", security(("bearer_auth" = [])))]
 pub async fn list_connections(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -23,7 +24,7 @@ pub async fn list_connections(req: &mut Request, depot: &mut Depot, res: &mut Re
     }
 }
 
-#[handler]
+#[endpoint(tags("Connections"), summary = "Send connection request to another user", security(("bearer_auth" = [])))]
 pub async fn create_connection(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -49,7 +50,7 @@ pub async fn create_connection(req: &mut Request, depot: &mut Depot, res: &mut R
     }
 }
 
-#[handler]
+#[endpoint(tags("Connections"), summary = "Accept or block connection request", security(("bearer_auth" = [])))]
 pub async fn update_connection(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -73,7 +74,7 @@ pub async fn update_connection(req: &mut Request, depot: &mut Depot, res: &mut R
     }
 }
 
-#[handler]
+#[endpoint(tags("Connections"), summary = "Delete or cancel user connection", security(("bearer_auth" = [])))]
 pub async fn delete_connection(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,

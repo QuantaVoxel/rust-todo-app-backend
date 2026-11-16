@@ -1,3 +1,4 @@
+use salvo::oapi::endpoint;
 use salvo::prelude::*;
 
 use crate::common::response::ApiResponse;
@@ -11,7 +12,11 @@ use crate::modules::tasks::services::TaskService;
 // Core Tasks Handlers
 // ====================================================
 
-#[handler]
+#[endpoint(
+    tags("Tasks"),
+    summary = "List tasks with filtering and pagination",
+    security(("bearer_auth" = []))
+)]
 pub async fn list_tasks(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -43,7 +48,11 @@ pub async fn list_tasks(req: &mut Request, depot: &mut Depot, res: &mut Response
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Tasks"),
+    summary = "Create new task",
+    security(("bearer_auth" = []))
+)]
 pub async fn create_task(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -70,7 +79,11 @@ pub async fn create_task(req: &mut Request, depot: &mut Depot, res: &mut Respons
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Tasks"),
+    summary = "Get task details by ID",
+    security(("bearer_auth" = []))
+)]
 pub async fn get_task(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -87,7 +100,11 @@ pub async fn get_task(req: &mut Request, depot: &mut Depot, res: &mut Response) 
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Tasks"),
+    summary = "Update task by ID",
+    security(("bearer_auth" = []))
+)]
 pub async fn update_task(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -112,7 +129,11 @@ pub async fn update_task(req: &mut Request, depot: &mut Depot, res: &mut Respons
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Tasks"),
+    summary = "Delete task by ID",
+    security(("bearer_auth" = []))
+)]
 pub async fn delete_task(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -129,7 +150,11 @@ pub async fn delete_task(req: &mut Request, depot: &mut Depot, res: &mut Respons
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Tasks"),
+    summary = "Archive task by ID",
+    security(("bearer_auth" = []))
+)]
 pub async fn archive_task(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -146,7 +171,11 @@ pub async fn archive_task(req: &mut Request, depot: &mut Depot, res: &mut Respon
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Tasks"),
+    summary = "Unarchive task by ID",
+    security(("bearer_auth" = []))
+)]
 pub async fn unarchive_task(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -163,7 +192,11 @@ pub async fn unarchive_task(req: &mut Request, depot: &mut Depot, res: &mut Resp
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Tasks"),
+    summary = "Update task completion progress (0-100)",
+    security(("bearer_auth" = []))
+)]
 pub async fn update_progress(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -193,7 +226,11 @@ pub async fn update_progress(req: &mut Request, depot: &mut Depot, res: &mut Res
 // Subtasks Handlers
 // ====================================================
 
-#[handler]
+#[endpoint(
+    tags("Subtasks"),
+    summary = "List subtasks for a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn list_subtasks(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -210,7 +247,11 @@ pub async fn list_subtasks(req: &mut Request, depot: &mut Depot, res: &mut Respo
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Subtasks"),
+    summary = "Create new subtask for a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn create_subtask(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -237,7 +278,11 @@ pub async fn create_subtask(req: &mut Request, depot: &mut Depot, res: &mut Resp
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Subtasks"),
+    summary = "Update subtask by ID",
+    security(("bearer_auth" = []))
+)]
 pub async fn update_subtask(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -261,7 +306,11 @@ pub async fn update_subtask(req: &mut Request, depot: &mut Depot, res: &mut Resp
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Subtasks"),
+    summary = "Delete subtask by ID",
+    security(("bearer_auth" = []))
+)]
 pub async fn delete_subtask(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -282,7 +331,11 @@ pub async fn delete_subtask(req: &mut Request, depot: &mut Depot, res: &mut Resp
 // Notes Handlers
 // ====================================================
 
-#[handler]
+#[endpoint(
+    tags("Notes"),
+    summary = "List notes for a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn list_notes(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -299,7 +352,11 @@ pub async fn list_notes(req: &mut Request, depot: &mut Depot, res: &mut Response
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Notes"),
+    summary = "Create new note for a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn create_note(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -326,7 +383,11 @@ pub async fn create_note(req: &mut Request, depot: &mut Depot, res: &mut Respons
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Notes"),
+    summary = "Update note by ID",
+    security(("bearer_auth" = []))
+)]
 pub async fn update_note(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -350,7 +411,11 @@ pub async fn update_note(req: &mut Request, depot: &mut Depot, res: &mut Respons
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Notes"),
+    summary = "Delete note by ID",
+    security(("bearer_auth" = []))
+)]
 pub async fn delete_note(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -367,7 +432,11 @@ pub async fn delete_note(req: &mut Request, depot: &mut Depot, res: &mut Respons
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Notes"),
+    summary = "Get version edit history for a note",
+    security(("bearer_auth" = []))
+)]
 pub async fn get_note_history(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -388,7 +457,11 @@ pub async fn get_note_history(req: &mut Request, depot: &mut Depot, res: &mut Re
 // Comments Handlers
 // ====================================================
 
-#[handler]
+#[endpoint(
+    tags("Comments"),
+    summary = "List comments for a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn list_comments(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -405,7 +478,11 @@ pub async fn list_comments(req: &mut Request, depot: &mut Depot, res: &mut Respo
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Comments"),
+    summary = "Create new comment for a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn create_comment(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -432,7 +509,11 @@ pub async fn create_comment(req: &mut Request, depot: &mut Depot, res: &mut Resp
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Comments"),
+    summary = "Update comment by ID",
+    security(("bearer_auth" = []))
+)]
 pub async fn update_comment(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -456,7 +537,11 @@ pub async fn update_comment(req: &mut Request, depot: &mut Depot, res: &mut Resp
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Comments"),
+    summary = "Delete comment by ID",
+    security(("bearer_auth" = []))
+)]
 pub async fn delete_comment(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -477,7 +562,11 @@ pub async fn delete_comment(req: &mut Request, depot: &mut Depot, res: &mut Resp
 // Attachments Handlers
 // ====================================================
 
-#[handler]
+#[endpoint(
+    tags("Attachments"),
+    summary = "List attachments for a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn list_attachments(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -494,7 +583,11 @@ pub async fn list_attachments(req: &mut Request, depot: &mut Depot, res: &mut Re
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Attachments"),
+    summary = "Upload or add attachment (JSON or multipart/form-data)",
+    security(("bearer_auth" = []))
+)]
 pub async fn upload_attachment(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -557,7 +650,11 @@ pub async fn upload_attachment(req: &mut Request, depot: &mut Depot, res: &mut R
     res.render(ApiError::BadRequest("Lampiran (file_url atau file form-data) wajib disertakan".into()));
 }
 
-#[handler]
+#[endpoint(
+    tags("Attachments"),
+    summary = "Delete attachment by ID",
+    security(("bearer_auth" = []))
+)]
 pub async fn delete_attachment(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -578,7 +675,11 @@ pub async fn delete_attachment(req: &mut Request, depot: &mut Depot, res: &mut R
 // Reminders Handlers
 // ====================================================
 
-#[handler]
+#[endpoint(
+    tags("Reminders"),
+    summary = "List reminders for a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn list_reminders(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -595,7 +696,11 @@ pub async fn list_reminders(req: &mut Request, depot: &mut Depot, res: &mut Resp
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Reminders"),
+    summary = "Create new reminder for a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn create_reminder(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -622,7 +727,11 @@ pub async fn create_reminder(req: &mut Request, depot: &mut Depot, res: &mut Res
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Reminders"),
+    summary = "Update reminder by ID",
+    security(("bearer_auth" = []))
+)]
 pub async fn update_reminder(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -646,7 +755,11 @@ pub async fn update_reminder(req: &mut Request, depot: &mut Depot, res: &mut Res
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Reminders"),
+    summary = "Delete reminder by ID",
+    security(("bearer_auth" = []))
+)]
 pub async fn delete_reminder(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -667,7 +780,11 @@ pub async fn delete_reminder(req: &mut Request, depot: &mut Depot, res: &mut Res
 // Recurrence Handlers
 // ====================================================
 
-#[handler]
+#[endpoint(
+    tags("Recurring Tasks"),
+    summary = "Get recurring pattern for a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn get_recurrence(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -684,7 +801,11 @@ pub async fn get_recurrence(req: &mut Request, depot: &mut Depot, res: &mut Resp
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Recurring Tasks"),
+    summary = "Create or update recurring pattern for a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn upsert_recurrence(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -708,7 +829,11 @@ pub async fn upsert_recurrence(req: &mut Request, depot: &mut Depot, res: &mut R
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Recurring Tasks"),
+    summary = "Delete recurring pattern for a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn delete_recurrence(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -729,7 +854,11 @@ pub async fn delete_recurrence(req: &mut Request, depot: &mut Depot, res: &mut R
 // Locations Handlers
 // ====================================================
 
-#[handler]
+#[endpoint(
+    tags("Locations"),
+    summary = "List all available locations",
+    security(("bearer_auth" = []))
+)]
 pub async fn list_locations(_req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let _user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -745,7 +874,11 @@ pub async fn list_locations(_req: &mut Request, depot: &mut Depot, res: &mut Res
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Locations"),
+    summary = "Create new physical location",
+    security(("bearer_auth" = []))
+)]
 pub async fn create_location(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let _user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -771,7 +904,11 @@ pub async fn create_location(req: &mut Request, depot: &mut Depot, res: &mut Res
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Locations"),
+    summary = "List locations linked to a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn list_task_locations(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -788,7 +925,11 @@ pub async fn list_task_locations(req: &mut Request, depot: &mut Depot, res: &mut
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Locations"),
+    summary = "Link location to a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn link_task_location(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -806,7 +947,11 @@ pub async fn link_task_location(req: &mut Request, depot: &mut Depot, res: &mut 
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Locations"),
+    summary = "Unlink location from a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn unlink_task_location(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -828,7 +973,11 @@ pub async fn unlink_task_location(req: &mut Request, depot: &mut Depot, res: &mu
 // Sharing Handlers
 // ====================================================
 
-#[handler]
+#[endpoint(
+    tags("Sharing"),
+    summary = "List shared users and permissions for a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn list_shares(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -845,7 +994,11 @@ pub async fn list_shares(req: &mut Request, depot: &mut Depot, res: &mut Respons
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Sharing"),
+    summary = "Share task or update permission with a user",
+    security(("bearer_auth" = []))
+)]
 pub async fn upsert_share(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -870,7 +1023,11 @@ pub async fn upsert_share(req: &mut Request, depot: &mut Depot, res: &mut Respon
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Sharing"),
+    summary = "Revoke task share for a user",
+    security(("bearer_auth" = []))
+)]
 pub async fn delete_share(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -892,7 +1049,11 @@ pub async fn delete_share(req: &mut Request, depot: &mut Depot, res: &mut Respon
 // Votes Handlers
 // ====================================================
 
-#[handler]
+#[endpoint(
+    tags("Votes"),
+    summary = "Get votes summary and user vote on a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn get_votes(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -909,7 +1070,11 @@ pub async fn get_votes(req: &mut Request, depot: &mut Depot, res: &mut Response)
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Votes"),
+    summary = "Cast or update upvote/downvote on a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn upsert_vote(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -933,7 +1098,11 @@ pub async fn upsert_vote(req: &mut Request, depot: &mut Depot, res: &mut Respons
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Votes"),
+    summary = "Remove vote from a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn delete_vote(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -954,7 +1123,11 @@ pub async fn delete_vote(req: &mut Request, depot: &mut Depot, res: &mut Respons
 // Audit History Handlers
 // ====================================================
 
-#[handler]
+#[endpoint(
+    tags("Audit History"),
+    summary = "Get status change history of a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn get_status_history(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -971,7 +1144,11 @@ pub async fn get_status_history(req: &mut Request, depot: &mut Depot, res: &mut 
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Audit History"),
+    summary = "Get priority change history of a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn get_priority_history(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -988,7 +1165,11 @@ pub async fn get_priority_history(req: &mut Request, depot: &mut Depot, res: &mu
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Audit History"),
+    summary = "Get label changes history of a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn get_labels_history(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -1009,7 +1190,11 @@ pub async fn get_labels_history(req: &mut Request, depot: &mut Depot, res: &mut 
 // Integrations Handlers
 // ====================================================
 
-#[handler]
+#[endpoint(
+    tags("Integrations"),
+    summary = "List external app integrations for a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn list_integrations(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -1026,7 +1211,11 @@ pub async fn list_integrations(req: &mut Request, depot: &mut Depot, res: &mut R
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Integrations"),
+    summary = "Link external app record to a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn create_integration(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -1053,7 +1242,11 @@ pub async fn create_integration(req: &mut Request, depot: &mut Depot, res: &mut 
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Integrations"),
+    summary = "Unlink external app record from a task",
+    security(("bearer_auth" = []))
+)]
 pub async fn delete_integration(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -1074,7 +1267,11 @@ pub async fn delete_integration(req: &mut Request, depot: &mut Depot, res: &mut 
 // Task Classification Handlers (Mount on Task)
 // ====================================================
 
-#[handler]
+#[endpoint(
+    tags("Tasks"),
+    summary = "Attach tag to task",
+    security(("bearer_auth" = []))
+)]
 pub async fn attach_task_tag(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -1092,7 +1289,11 @@ pub async fn attach_task_tag(req: &mut Request, depot: &mut Depot, res: &mut Res
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Tasks"),
+    summary = "Detach tag from task",
+    security(("bearer_auth" = []))
+)]
 pub async fn detach_task_tag(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -1110,7 +1311,11 @@ pub async fn detach_task_tag(req: &mut Request, depot: &mut Depot, res: &mut Res
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Tasks"),
+    summary = "Attach category to task",
+    security(("bearer_auth" = []))
+)]
 pub async fn attach_task_category(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -1128,7 +1333,11 @@ pub async fn attach_task_category(req: &mut Request, depot: &mut Depot, res: &mu
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Tasks"),
+    summary = "Detach category from task",
+    security(("bearer_auth" = []))
+)]
 pub async fn detach_task_category(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -1146,7 +1355,11 @@ pub async fn detach_task_category(req: &mut Request, depot: &mut Depot, res: &mu
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Tasks"),
+    summary = "Attach label to task",
+    security(("bearer_auth" = []))
+)]
 pub async fn attach_task_label(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -1164,7 +1377,11 @@ pub async fn attach_task_label(req: &mut Request, depot: &mut Depot, res: &mut R
     }
 }
 
-#[handler]
+#[endpoint(
+    tags("Tasks"),
+    summary = "Detach label from task",
+    security(("bearer_auth" = []))
+)]
 pub async fn detach_task_label(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,

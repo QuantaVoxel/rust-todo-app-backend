@@ -1,3 +1,4 @@
+use salvo::oapi::endpoint;
 use salvo::prelude::*;
 use sea_orm::{EntityTrait, QueryOrder};
 
@@ -6,7 +7,7 @@ use crate::core::db::connection::try_get_db_connection;
 use crate::entity::{external_apps, task_priorities, task_statuses};
 use crate::error::api_error::ApiError;
 
-#[handler]
+#[endpoint(tags("Lookups"), summary = "Get list of task statuses")]
 pub async fn get_statuses(_req: &mut Request, res: &mut Response) {
     let Some(db) = try_get_db_connection() else {
         res.render(ApiError::Internal("Database belum terhubung".into()));
@@ -19,7 +20,7 @@ pub async fn get_statuses(_req: &mut Request, res: &mut Response) {
     }
 }
 
-#[handler]
+#[endpoint(tags("Lookups"), summary = "Get list of task priorities")]
 pub async fn get_priorities(_req: &mut Request, res: &mut Response) {
     let Some(db) = try_get_db_connection() else {
         res.render(ApiError::Internal("Database belum terhubung".into()));
@@ -36,7 +37,7 @@ pub async fn get_priorities(_req: &mut Request, res: &mut Response) {
     }
 }
 
-#[handler]
+#[endpoint(tags("Lookups"), summary = "Get supported external applications")]
 pub async fn get_external_apps(_req: &mut Request, res: &mut Response) {
     let Some(db) = try_get_db_connection() else {
         res.render(ApiError::Internal("Database belum terhubung".into()));
@@ -49,7 +50,7 @@ pub async fn get_external_apps(_req: &mut Request, res: &mut Response) {
     }
 }
 
-#[handler]
+#[endpoint(tags("Lookups"), summary = "Get all enum reference values")]
 pub async fn get_enums(_req: &mut Request, res: &mut Response) {
     res.render(Json(ApiResponse::new(serde_json::json!({
         "vote_type": ["up", "down"],

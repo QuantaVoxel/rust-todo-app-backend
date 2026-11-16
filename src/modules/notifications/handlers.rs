@@ -1,3 +1,4 @@
+use salvo::oapi::endpoint;
 use salvo::prelude::*;
 
 use crate::common::response::ApiResponse;
@@ -6,7 +7,7 @@ use crate::core::middleware::get_authenticated_user;
 use crate::modules::notifications::dtos::*;
 use crate::modules::notifications::services::NotificationService;
 
-#[handler]
+#[endpoint(tags("Notifications"), summary = "List notifications with optional is_read filter", security(("bearer_auth" = [])))]
 pub async fn list_notifications(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -23,7 +24,7 @@ pub async fn list_notifications(req: &mut Request, depot: &mut Depot, res: &mut 
     }
 }
 
-#[handler]
+#[endpoint(tags("Notifications"), summary = "Get unread notifications count", security(("bearer_auth" = [])))]
 pub async fn get_unread_count(_req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -41,7 +42,7 @@ pub async fn get_unread_count(_req: &mut Request, depot: &mut Depot, res: &mut R
     }
 }
 
-#[handler]
+#[endpoint(tags("Notifications"), summary = "Mark single notification as read or unread", security(("bearer_auth" = [])))]
 pub async fn mark_notification_read(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -65,7 +66,7 @@ pub async fn mark_notification_read(req: &mut Request, depot: &mut Depot, res: &
     }
 }
 
-#[handler]
+#[endpoint(tags("Notifications"), summary = "Mark all notifications as read", security(("bearer_auth" = [])))]
 pub async fn mark_all_read(_req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -83,7 +84,7 @@ pub async fn mark_all_read(_req: &mut Request, depot: &mut Depot, res: &mut Resp
     }
 }
 
-#[handler]
+#[endpoint(tags("Notifications"), summary = "Delete notification by ID", security(("bearer_auth" = [])))]
 pub async fn delete_notification(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,

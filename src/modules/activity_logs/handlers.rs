@@ -1,10 +1,11 @@
+use salvo::oapi::endpoint;
 use salvo::prelude::*;
 
 use crate::core::middleware::get_authenticated_user;
 use crate::modules::activity_logs::dtos::ActivityLogQuery;
 use crate::modules::activity_logs::services::ActivityLogService;
 
-#[handler]
+#[endpoint(tags("Activity Logs"), summary = "List activity logs with filtering and pagination", security(("bearer_auth" = [])))]
 pub async fn list_activity_logs(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,

@@ -17,6 +17,14 @@ http://localhost:8080/api/v1
 - **Format Tanggal/Waktu**: ISO 8601 UTC (`2026-11-16T14:25:00Z`)
 - **Penamaan Field**: `snake_case`
 
+### Interactive API Documentation & Explorer (Swagger UI & Scalar)
+Aplikasi menyediakan UI interaktif untuk eksplorasi dan pengujian API secara langsung di browser:
+- **Swagger UI**: `http://localhost:8080/swagger-ui/` (Interaktif dengan 'Try it out' dan otentikasi Bearer token).
+- **Scalar API Reference**: `http://localhost:8080/scalar/` (Modern visual documentation alternatif).
+- **OpenAPI 3.1 Specification (JSON)**: `http://localhost:8080/api-doc/openapi.json` (Dapat diimpor ke Postman, Insomnia, atau code generator).
+- **Cakupan Rute**: Seluruh 88 rute API di 20 modul telah terdaftar lengkap (`System`, `Auth`, `Users`, `Profiles`, `Settings`, `Lookups`, `Tasks`, `Subtasks`, `Notes`, `Comments`, `Attachments`, `Reminders`, `Recurring Tasks`, `Locations`, `Sharing`, `Votes`, `Audit History`, `Integrations`, `Tags`, `Categories`, `Labels`, `Connections`, `Notifications`, `Activity Logs`).
+- **Autentikasi di Swagger**: Klik tombol **Authorize** di pojok kanan atas Swagger UI, masukkan token JWT hasil dari login/register dengan format `Bearer <token>` (atau cukup `<token>`), lalu seluruh request terproteksi akan terotentikasi secara otomatis.
+
 ### Security Headers & CORS
 Setiap response API menyertakan header keamanan dan konfigurasi CORS:
 - `Access-Control-Allow-Origin: *`

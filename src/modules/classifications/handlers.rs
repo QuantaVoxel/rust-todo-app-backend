@@ -1,3 +1,4 @@
+use salvo::oapi::endpoint;
 use salvo::prelude::*;
 
 use crate::common::response::ApiResponse;
@@ -9,7 +10,7 @@ use crate::modules::classifications::services::ClassificationService;
 // Tags Handlers
 // ----------------------------------------------------
 
-#[handler]
+#[endpoint(tags("Tags"), summary = "List all tags", security(("bearer_auth" = [])))]
 pub async fn list_tags(_req: &mut Request, res: &mut Response) {
     match ClassificationService::list_tags().await {
         Ok(data) => res.render(Json(ApiResponse::new(data))),
@@ -17,7 +18,7 @@ pub async fn list_tags(_req: &mut Request, res: &mut Response) {
     }
 }
 
-#[handler]
+#[endpoint(tags("Tags"), summary = "Create new tag", security(("bearer_auth" = [])))]
 pub async fn create_tag(req: &mut Request, res: &mut Response) {
     let dto = match parse_and_validate::<TagRequest>(req).await {
         Ok(d) => d,
@@ -36,7 +37,7 @@ pub async fn create_tag(req: &mut Request, res: &mut Response) {
     }
 }
 
-#[handler]
+#[endpoint(tags("Tags"), summary = "Update tag by ID", security(("bearer_auth" = [])))]
 pub async fn update_tag(req: &mut Request, res: &mut Response) {
     let tag_id = req.param::<i32>("tag_id").unwrap_or_default();
     let dto = match parse_and_validate::<TagRequest>(req).await {
@@ -53,7 +54,7 @@ pub async fn update_tag(req: &mut Request, res: &mut Response) {
     }
 }
 
-#[handler]
+#[endpoint(tags("Tags"), summary = "Delete tag by ID (?force=true for cascading)", security(("bearer_auth" = [])))]
 pub async fn delete_tag(req: &mut Request, res: &mut Response) {
     let tag_id = req.param::<i32>("tag_id").unwrap_or_default();
     let force = req.query::<bool>("force").unwrap_or(false);
@@ -68,7 +69,7 @@ pub async fn delete_tag(req: &mut Request, res: &mut Response) {
 // Categories Handlers
 // ----------------------------------------------------
 
-#[handler]
+#[endpoint(tags("Categories"), summary = "List all categories", security(("bearer_auth" = [])))]
 pub async fn list_categories(_req: &mut Request, res: &mut Response) {
     match ClassificationService::list_categories().await {
         Ok(data) => res.render(Json(ApiResponse::new(data))),
@@ -76,7 +77,7 @@ pub async fn list_categories(_req: &mut Request, res: &mut Response) {
     }
 }
 
-#[handler]
+#[endpoint(tags("Categories"), summary = "Create new category", security(("bearer_auth" = [])))]
 pub async fn create_category(req: &mut Request, res: &mut Response) {
     let dto = match parse_and_validate::<CategoryRequest>(req).await {
         Ok(d) => d,
@@ -95,7 +96,7 @@ pub async fn create_category(req: &mut Request, res: &mut Response) {
     }
 }
 
-#[handler]
+#[endpoint(tags("Categories"), summary = "Update category by ID", security(("bearer_auth" = [])))]
 pub async fn update_category(req: &mut Request, res: &mut Response) {
     let category_id = req.param::<i32>("category_id").unwrap_or_default();
     let dto = match parse_and_validate::<CategoryRequest>(req).await {
@@ -112,7 +113,7 @@ pub async fn update_category(req: &mut Request, res: &mut Response) {
     }
 }
 
-#[handler]
+#[endpoint(tags("Categories"), summary = "Delete category by ID (?force=true for cascading)", security(("bearer_auth" = [])))]
 pub async fn delete_category(req: &mut Request, res: &mut Response) {
     let category_id = req.param::<i32>("category_id").unwrap_or_default();
     let force = req.query::<bool>("force").unwrap_or(false);
@@ -127,7 +128,7 @@ pub async fn delete_category(req: &mut Request, res: &mut Response) {
 // Labels Handlers
 // ----------------------------------------------------
 
-#[handler]
+#[endpoint(tags("Labels"), summary = "List all labels", security(("bearer_auth" = [])))]
 pub async fn list_labels(_req: &mut Request, res: &mut Response) {
     match ClassificationService::list_labels().await {
         Ok(data) => res.render(Json(ApiResponse::new(data))),
@@ -135,7 +136,7 @@ pub async fn list_labels(_req: &mut Request, res: &mut Response) {
     }
 }
 
-#[handler]
+#[endpoint(tags("Labels"), summary = "Create new label", security(("bearer_auth" = [])))]
 pub async fn create_label(req: &mut Request, res: &mut Response) {
     let dto = match parse_and_validate::<LabelRequest>(req).await {
         Ok(d) => d,
@@ -154,7 +155,7 @@ pub async fn create_label(req: &mut Request, res: &mut Response) {
     }
 }
 
-#[handler]
+#[endpoint(tags("Labels"), summary = "Update label by ID", security(("bearer_auth" = [])))]
 pub async fn update_label(req: &mut Request, res: &mut Response) {
     let label_id = req.param::<i32>("label_id").unwrap_or_default();
     let dto = match parse_and_validate::<LabelRequest>(req).await {
@@ -171,7 +172,7 @@ pub async fn update_label(req: &mut Request, res: &mut Response) {
     }
 }
 
-#[handler]
+#[endpoint(tags("Labels"), summary = "Delete label by ID (?force=true for cascading)", security(("bearer_auth" = [])))]
 pub async fn delete_label(req: &mut Request, res: &mut Response) {
     let label_id = req.param::<i32>("label_id").unwrap_or_default();
     let force = req.query::<bool>("force").unwrap_or(false);

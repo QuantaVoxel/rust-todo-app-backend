@@ -1,3 +1,7 @@
+use salvo::oapi::scalar::Scalar;
+use salvo::oapi::security::{Http, HttpAuthScheme, SecurityScheme};
+use salvo::oapi::swagger_ui::SwaggerUi;
+use salvo::oapi::{Contact, Info, License, OpenApi};
 use salvo::prelude::*;
 use salvo::serve_static::StaticDir;
 
@@ -8,7 +12,7 @@ use crate::modules::{
     activity_logs, auth, classifications, connections, lookups, notifications, tasks, users,
 };
 
-#[handler]
+#[endpoint(tags("System"), summary = "Health check")]
 async fn health_check() -> &'static str {
     "OK"
 }
@@ -34,7 +38,23 @@ pub fn routes() -> Router {
                 .get(StaticDir::new(["uploads"]).auto_list(false)),
         );
 
+    let doc = OpenApi::new("Todo App API", "1.0.0")
+        .info(
+            Info::new("Todo App API", "1.0.0")
+                .description("Comprehensive Todo App REST API built with Salvo, SeaORM 2.0, and PostgreSQL")
+                .contact(Contact::new().name("Todo App Support").email("support@todoapp.local"))
+                .license(License::new("MIT")),
+        )
+        .add_security_scheme(
+            "bearer_auth",
+            SecurityScheme::Http(Http::new(HttpAuthScheme::Bearer)),
+        )
+        .merge_router(&api_v1);
+
     Router::new()
+        .push(doc.into_router("api-doc/openapi.json"))
+        .push(SwaggerUi::new("/api-doc/openapi.json").into_router("swagger-ui"))
+        .push(Scalar::new("/api-doc/openapi.json").into_router("scalar"))
         .push(api_v1)
         .push(
             Router::with_path("uploads/{*path}")
@@ -474,5 +494,57 @@ mod tests {
         assert_eq!(body_v1, "Hello from Todo App static upload!");
 
         let _ = tokio::fs::remove_file(test_file_path).await;
+    }
+
+    #[tokio::test]
+    async fn test_openapi_spec_json_endpoint() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let mut resp = TestClient::get("http://127.0.0.1:8698/api-doc/openapi.json")
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::OK));
+        let body = resp.take_string().await.unwrap();
+        assert!(body.contains("Todo App API"), "OpenAPI spec should contain API title");
+        assert!(body.contains("openapi"), "OpenAPI spec should specify openapi version");
+        assert!(body.contains("bearer_auth"), "OpenAPI spec should have bearer_auth defined");
+        assert!(body.contains("/api/v1/tasks"), "OpenAPI spec should contain /api/v1/tasks");
+        assert!(body.contains("/api/v1/auth/register"), "OpenAPI spec should contain /api/v1/auth/register");
+        assert!(body.contains("/api/v1/users/me"), "OpenAPI spec should contain /api/v1/users/me");
+        assert!(body.contains("/api/v1/categories"), "OpenAPI spec should contain /api/v1/categories");
+        assert!(body.contains("/api/v1/connections"), "OpenAPI spec should contain /api/v1/connections");
+        assert!(body.contains("/api/v1/notifications"), "OpenAPI spec should contain /api/v1/notifications");
+        assert!(body.contains("/api/v1/activity-logs"), "OpenAPI spec should contain /api/v1/activity-logs");
+    }
+
+    #[tokio::test]
+    async fn test_swagger_ui_endpoint() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let mut resp = TestClient::get("http://127.0.0.1:8698/swagger-ui/")
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::OK));
+        let body = resp.take_string().await.unwrap();
+        assert!(body.contains("swagger-ui"), "Swagger UI HTML should load");
+        assert!(body.contains("SwaggerUIBundle"), "Swagger UI bundle should be referenced");
+    }
+
+    #[tokio::test]
+    async fn test_scalar_endpoint() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let mut resp = TestClient::get("http://127.0.0.1:8698/scalar/")
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::OK));
+        let body = resp.take_string().await.unwrap();
+        assert!(body.contains("scalar"), "Scalar HTML should load");
     }
 }

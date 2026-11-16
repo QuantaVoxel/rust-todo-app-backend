@@ -1,3 +1,4 @@
+use salvo::oapi::endpoint;
 use salvo::prelude::*;
 
 use crate::common::response::ApiResponse;
@@ -7,7 +8,7 @@ use crate::error::ApiError;
 use crate::modules::users::dtos::*;
 use crate::modules::users::services::UserService;
 
-#[handler]
+#[endpoint(tags("Users"), summary = "Get authenticated user details", security(("bearer_auth" = [])))]
 pub async fn get_me(_req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -23,7 +24,7 @@ pub async fn get_me(_req: &mut Request, depot: &mut Depot, res: &mut Response) {
     }
 }
 
-#[handler]
+#[endpoint(tags("Users"), summary = "Update authenticated user account", security(("bearer_auth" = [])))]
 pub async fn update_me(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -47,7 +48,7 @@ pub async fn update_me(req: &mut Request, depot: &mut Depot, res: &mut Response)
     }
 }
 
-#[handler]
+#[endpoint(tags("Users"), summary = "Delete authenticated user account", security(("bearer_auth" = [])))]
 pub async fn delete_me(_req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -63,7 +64,7 @@ pub async fn delete_me(_req: &mut Request, depot: &mut Depot, res: &mut Response
     }
 }
 
-#[handler]
+#[endpoint(tags("Users"), summary = "Search users by email, username, or name", security(("bearer_auth" = [])))]
 pub async fn search_users(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -81,7 +82,7 @@ pub async fn search_users(req: &mut Request, depot: &mut Depot, res: &mut Respon
     }
 }
 
-#[handler]
+#[endpoint(tags("Profiles"), summary = "Get current user profile", security(("bearer_auth" = [])))]
 pub async fn get_profile(_req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -97,7 +98,7 @@ pub async fn get_profile(_req: &mut Request, depot: &mut Depot, res: &mut Respon
     }
 }
 
-#[handler]
+#[endpoint(tags("Profiles"), summary = "Create or update current user profile", security(("bearer_auth" = [])))]
 pub async fn upsert_profile(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -121,7 +122,7 @@ pub async fn upsert_profile(req: &mut Request, depot: &mut Depot, res: &mut Resp
     }
 }
 
-#[handler]
+#[endpoint(tags("Settings"), summary = "Get all current user settings", security(("bearer_auth" = [])))]
 pub async fn get_settings(_req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -137,7 +138,7 @@ pub async fn get_settings(_req: &mut Request, depot: &mut Depot, res: &mut Respo
     }
 }
 
-#[handler]
+#[endpoint(tags("Settings"), summary = "Create or update user setting by key", security(("bearer_auth" = [])))]
 pub async fn upsert_setting(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
@@ -169,7 +170,7 @@ pub async fn upsert_setting(req: &mut Request, depot: &mut Depot, res: &mut Resp
     }
 }
 
-#[handler]
+#[endpoint(tags("Settings"), summary = "Delete user setting by key", security(("bearer_auth" = [])))]
 pub async fn delete_setting(req: &mut Request, depot: &mut Depot, res: &mut Response) {
     let user = match get_authenticated_user(depot) {
         Ok(u) => u,
