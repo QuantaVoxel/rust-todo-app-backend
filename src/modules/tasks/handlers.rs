@@ -526,7 +526,23 @@ pub async fn upload_attachment(req: &mut Request, depot: &mut Depot, res: &mut R
 
     // Fallback multipart upload
     if let Some(file) = req.file("file").await {
-        let file_url = format!("/uploads/{}", file.name().unwrap_or("attachment"));
+        let original_name = file.name().unwrap_or("attachment").to_string();
+        let safe_ext = original_name.rsplit('.').next().unwrap_or("").to_lowercase();
+        let file_id = uuid::Uuid::new_v4().to_string();
+        let safe_filename = if safe_ext.is_empty() || safe_ext == original_name {
+            file_id
+        } else {
+            format!("{file_id}.{safe_ext}")
+        };
+
+        let dest_path = format!("uploads/{safe_filename}");
+        let _ = tokio::fs::create_dir_all("uploads").await;
+        if let Err(e) = tokio::fs::copy(file.path(), &dest_path).await {
+            res.render(ApiError::Internal(format!("Gagal menyimpan file lampiran: {e}")));
+            return;
+        }
+
+        let file_url = format!("/uploads/{safe_filename}");
         let file_type = file.content_type().map(|c| c.to_string());
         match TaskService::add_attachment(user.user_id, task_id, file_url, file_type).await {
             Ok(data) => {

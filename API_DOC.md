@@ -12,10 +12,31 @@ http://localhost:8080/api/v1
 ```
 
 ### Format Data & Header
-- **Request & Response Body**: `application/json`
+- **Request & Response Body**: `application/json` (kecuali file upload via `multipart/form-data`)
 - **Autentikasi**: Header `Authorization: Bearer <access_token>` (wajib untuk endpoint terproteksi)
 - **Format Tanggal/Waktu**: ISO 8601 UTC (`2026-11-16T14:25:00Z`)
 - **Penamaan Field**: `snake_case`
+
+### Security Headers & CORS
+Setiap response API menyertakan header keamanan dan konfigurasi CORS:
+- `Access-Control-Allow-Origin: *`
+- `Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS`
+- `Access-Control-Allow-Headers: authorization, content-type, x-requested-with, accept, origin`
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: DENY`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `X-XSS-Protection: 1; mode=block`
+
+### Rate Limiting
+Sistem menerapkan pembatasan laju permintaan berbasis IP dengan header kuota otomatis (`X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`):
+- **General API**: `120 requests / menit` per IP.
+- **Auth Endpoints (`/auth/login`, `/auth/register`)**: `20 requests / menit` per IP untuk proteksi brute-force.
+- **Status Kode**: Jika melebihi kuota, server mengembalikan HTTP `429 Too Many Requests`.
+
+### Static File Serving
+File yang diunggah dapat diakses langsung oleh browser atau klien HTTP pada rute publik:
+- **Base URL Asset**: `http://localhost:8080/uploads/{filename}` (atau `/api/v1/uploads/{filename}`)
+- Mendukung streaming, caching, ETag, dan resume download via HTTP Range headers.
 
 ### Standar Format Response Berhasil
 ```json
@@ -998,13 +1019,41 @@ Komentar kolaborasi pada task (membutuhkan izin `comment` atau lebih tinggi).
 
 ## 9. Attachments Module
 
-Lampiran dokumen atau file pendukung pada task.
+Lampiran dokumen atau file pendukung pada task. File fisik disimpan secara persisten di direktori server `./uploads/` dan dapat diakses publik melalui URL yang dihasilkan (`/uploads/{uuid}.{ext}`).
 
 | Method | Endpoint | Deskripsi |
 | :--- | :--- | :--- |
-| `GET` | `/tasks/{task_id}/attachments` | Daftar lampiran file |
-| `POST` | `/tasks/{task_id}/attachments` | Unggah lampiran (`multipart/form-data`) |
+| `GET` | `/tasks/{task_id}/attachments` | Daftar lampiran file pada task |
+| `POST` | `/tasks/{task_id}/attachments` | Unggah file lampiran (`multipart/form-data` atau JSON `file_url`) |
 | `DELETE` | `/attachments/{attachment_id}` | Hapus lampiran |
+
+#### Contoh 1: Unggah File Fisik (`multipart/form-data`)
+```bash
+curl -X POST http://localhost:8080/api/v1/tasks/1/attachments \
+  -H "Authorization: Bearer <access_token>" \
+  -F "file=@/path/to/dokumen.pdf"
+```
+
+#### Contoh 2: Daftarkan URL File Eksternal (`application/json`)
+```json
+{
+  "file_url": "https://cdn.example.com/files/laporan.pdf",
+  "file_type": "application/pdf"
+}
+```
+
+#### Response `201 CREATED`
+```json
+{
+  "data": {
+    "attachment_id": 5,
+    "task_id": 1,
+    "file_url": "/uploads/550e8400-e29b-41d4-a716-446655440000.pdf",
+    "file_type": "application/pdf",
+    "uploaded_at": "2026-11-17T00:10:00Z"
+  }
+}
+```
 
 ---
 

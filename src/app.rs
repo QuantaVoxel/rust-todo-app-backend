@@ -20,6 +20,9 @@ pub async fn start() {
     let router: Router = routes::routes();
     let service = Service::new(router).catcher(Catcher::default().hoop(error_catcher));
 
+    // Ensure uploads directory exists
+    tokio::fs::create_dir_all("uploads").await.ok();
+
     // Check DB connection & run migrations
     db_starting().await;
 

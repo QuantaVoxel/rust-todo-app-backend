@@ -1,6 +1,9 @@
 use salvo::prelude::*;
+use salvo::serve_static::StaticDir;
 
-use crate::core::middleware::cors_middleware;
+use crate::core::middleware::{
+    auth_rate_limiter, cors_middleware, global_rate_limiter, security_headers_middleware,
+};
 use crate::modules::{
     activity_logs, auth, classifications, connections, lookups, notifications, tasks, users,
 };
@@ -11,19 +14,32 @@ async fn health_check() -> &'static str {
 }
 
 pub fn routes() -> Router {
+    let auth_router = auth::routes().hoop(auth_rate_limiter());
+
     let api_v1 = Router::with_path("api/v1")
         .hoop(cors_middleware())
+        .hoop(security_headers_middleware)
+        .hoop(global_rate_limiter())
         .push(Router::with_path("health").get(health_check))
-        .push(auth::routes())
+        .push(auth_router)
         .push(users::routes())
         .push(tasks::routes())
         .push(lookups::routes())
         .push(classifications::routes())
         .push(connections::routes())
         .push(notifications::routes())
-        .push(activity_logs::routes());
+        .push(activity_logs::routes())
+        .push(
+            Router::with_path("uploads/{*path}")
+                .get(StaticDir::new(["uploads"]).auto_list(false)),
+        );
 
-    Router::new().push(api_v1)
+    Router::new()
+        .push(api_v1)
+        .push(
+            Router::with_path("uploads/{*path}")
+                .get(StaticDir::new(["uploads"]).auto_list(false)),
+        )
 }
 
 #[cfg(test)]
@@ -401,5 +417,62 @@ mod tests {
             .send(&service)
             .await;
         assert_eq!(resp.status_code, Some(StatusCode::UNAUTHORIZED));
+    }
+
+    #[tokio::test]
+    async fn test_security_headers_and_cors() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let resp = TestClient::get("http://127.0.0.1:8698/api/v1/health")
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::OK));
+        let headers = resp.headers();
+        assert_eq!(
+            headers.get("x-content-type-options").and_then(|v| v.to_str().ok()),
+            Some("nosniff")
+        );
+        assert_eq!(
+            headers.get("x-frame-options").and_then(|v| v.to_str().ok()),
+            Some("DENY")
+        );
+        assert_eq!(
+            headers.get("referrer-policy").and_then(|v| v.to_str().ok()),
+            Some("strict-origin-when-cross-origin")
+        );
+        assert_eq!(
+            headers.get("access-control-allow-origin").and_then(|v| v.to_str().ok()),
+            Some("*")
+        );
+    }
+
+    #[tokio::test]
+    async fn test_static_file_serving() {
+        tokio::fs::create_dir_all("uploads").await.unwrap();
+        let test_file_path = "uploads/test_asset.txt";
+        tokio::fs::write(test_file_path, "Hello from Todo App static upload!").await.unwrap();
+
+        let router = routes();
+        let service = Service::new(router);
+
+        let mut resp = TestClient::get("http://127.0.0.1:8698/uploads/test_asset.txt")
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::OK));
+        let body = resp.take_string().await.unwrap();
+        assert_eq!(body, "Hello from Todo App static upload!");
+
+        // Also test through /api/v1/uploads/test_asset.txt
+        let mut resp_v1 = TestClient::get("http://127.0.0.1:8698/api/v1/uploads/test_asset.txt")
+            .send(&service)
+            .await;
+        assert_eq!(resp_v1.status_code, Some(StatusCode::OK));
+        let body_v1 = resp_v1.take_string().await.unwrap();
+        assert_eq!(body_v1, "Hello from Todo App static upload!");
+
+        let _ = tokio::fs::remove_file(test_file_path).await;
     }
 }
