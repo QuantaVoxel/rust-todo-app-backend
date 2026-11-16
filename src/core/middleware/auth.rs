@@ -2,12 +2,13 @@ use salvo::prelude::*;
 
 use crate::config::Settings;
 use crate::error::ApiError;
-use crate::utils::jwt::verify_token;
+use crate::utils::jwt::verify_access_token;
 
 #[derive(Debug, Clone)]
 pub struct AuthenticatedUser {
     pub user_id: i32,
     pub username: String,
+    pub token_jti: String,
 }
 
 #[handler]
@@ -28,11 +29,12 @@ pub async fn auth_middleware(req: &mut Request, depot: &mut Depot, res: &mut Res
     };
 
     let settings = Settings::load();
-    match verify_token(token, &settings.jwt_secret) {
+    match verify_access_token(token, &settings.jwt_secret) {
         Ok(claims) => {
             depot.insert_typed(AuthenticatedUser {
                 user_id: claims.sub,
                 username: claims.username,
+                token_jti: claims.jti,
             });
         }
         Err(err) => {

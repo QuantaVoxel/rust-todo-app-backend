@@ -8,7 +8,7 @@ pub fn routes() -> Router {
         .push(Router::with_path("register").post(handlers::register))
         .push(Router::with_path("login").post(handlers::login))
         .push(Router::with_path("refresh").post(handlers::refresh_token))
-        .push(Router::with_path("logout").post(handlers::logout));
+        .push(Router::with_path("logout").post(handlers::logout).delete(handlers::logout));
 
     let protected_routes = Router::with_path("auth")
         .hoop(auth_middleware)

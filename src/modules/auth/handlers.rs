@@ -68,8 +68,11 @@ pub async fn refresh_token(req: &mut Request, res: &mut Response) {
 }
 
 #[handler]
-pub async fn logout(_req: &mut Request, res: &mut Response) {
-    match AuthService::logout().await {
+pub async fn logout(req: &mut Request, depot: &mut Depot, res: &mut Response) {
+    let logout_dto = parse_and_validate::<LogoutRequest>(req).await.ok();
+    let auth_jti = get_authenticated_user(depot).ok().map(|u| u.token_jti.as_str());
+
+    match AuthService::logout(logout_dto, auth_jti).await {
         Ok(_) => {
             res.render(Json(ApiResponse::new("Logout berhasil")));
         }

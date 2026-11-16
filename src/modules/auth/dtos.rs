@@ -60,6 +60,11 @@ pub struct RefreshTokenResponse {
 }
 
 #[derive(Debug, Deserialize, Validate)]
+pub struct LogoutRequest {
+    pub refresh_token: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Validate)]
 pub struct ChangePasswordRequest {
     #[validate(required)]
     pub old_password: Option<String>,

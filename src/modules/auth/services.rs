@@ -7,7 +7,9 @@ use crate::entity::users;
 use crate::error::api_error::ApiError;
 use crate::modules::auth::dtos::*;
 use crate::utils::hash::{hash_password, verify_password};
-use crate::utils::jwt::{generate_token, verify_token};
+use crate::utils::jwt::{
+    generate_access_token, generate_refresh_token, revoke_token, verify_refresh_token,
+};
 
 pub struct AuthService;
 
@@ -87,14 +89,14 @@ impl AuthService {
         }
 
         let settings = Settings::load();
-        let access_token = generate_token(
+        let access_token = generate_access_token(
             user.user_id,
             &user.username,
             &settings.jwt_secret,
             settings.jwt_expiration,
         )?;
 
-        let refresh_token = generate_token(
+        let refresh_token = generate_refresh_token(
             user.user_id,
             &user.username,
             &settings.jwt_secret,
@@ -121,23 +123,24 @@ impl AuthService {
             .ok_or_else(|| ApiError::BadRequest("Refresh token wajib diisi".into()))?;
 
         let settings = Settings::load();
-        let claims = verify_token(&token, &settings.jwt_secret).map_err(|_| {
-            ApiError::Unauthorized("Refresh token tidak valid atau kedaluwarsa".into())
-        })?;
+        let claims = verify_refresh_token(&token, &settings.jwt_secret)?;
 
         let user = users::Entity::find_by_id(claims.sub)
             .one(db)
             .await?
             .ok_or_else(|| ApiError::Unauthorized("User tidak ditemukan".into()))?;
 
-        let new_access_token = generate_token(
+        // Invalidate old refresh token (Token Rotation)
+        revoke_token(&claims.jti);
+
+        let new_access_token = generate_access_token(
             user.user_id,
             &user.username,
             &settings.jwt_secret,
             settings.jwt_expiration,
         )?;
 
-        let new_refresh_token = generate_token(
+        let new_refresh_token = generate_refresh_token(
             user.user_id,
             &user.username,
             &settings.jwt_secret,
@@ -155,7 +158,26 @@ impl AuthService {
         })
     }
 
-    pub async fn logout() -> Result<(), ApiError> {
+    pub async fn logout(
+        dto: Option<LogoutRequest>,
+        auth_jti: Option<&str>,
+    ) -> Result<(), ApiError> {
+        let settings = Settings::load();
+
+        // Revoke refresh token if provided
+        if let Some(req) = dto {
+            if let Some(ref rt) = req.refresh_token {
+                if let Ok(claims) = verify_refresh_token(rt, &settings.jwt_secret) {
+                    revoke_token(&claims.jti);
+                }
+            }
+        }
+
+        // Revoke active bearer token if user is authenticated
+        if let Some(jti) = auth_jti {
+            revoke_token(jti);
+        }
+
         Ok(())
     }
 

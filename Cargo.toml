@@ -18,5 +18,6 @@ tracing = "0.1.44"
 bcrypt = "0.19.3"
 thiserror = "2.0.21"
 jsonwebtoken = "11.1.0"
+uuid = { version = "1.29.2", features = ["v4", "fast-rng"] }
 
 migration = {path = "migration"}

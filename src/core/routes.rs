@@ -169,4 +169,35 @@ mod tests {
         let body = resp.take_string().await.unwrap();
         assert!(body.contains("UNAUTHORIZED"));
     }
+
+    #[tokio::test]
+    async fn test_refresh_token_validation_error() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let payload = serde_json::json!({});
+
+        let mut resp = TestClient::post("http://127.0.0.1:8698/api/v1/auth/refresh")
+            .json(&payload)
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::BAD_REQUEST));
+        let body = resp.take_string().await.unwrap();
+        assert!(body.contains("VALIDATION_ERROR"));
+    }
+
+    #[tokio::test]
+    async fn test_logout_endpoint() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let mut resp = TestClient::post("http://127.0.0.1:8698/api/v1/auth/logout")
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::OK));
+        let body = resp.take_string().await.unwrap();
+        assert!(body.contains("Logout berhasil"));
+    }
 }
