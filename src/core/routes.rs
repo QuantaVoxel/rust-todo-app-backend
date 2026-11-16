@@ -132,6 +132,29 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_register_missing_profile_fields_validation_error() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let payload = serde_json::json!({
+            "username": "validuser",
+            "email": "validuser@example.com",
+            "password": "validpassword123"
+            // first_name, last_name, phone_number omitted
+        });
+
+        let mut resp = TestClient::post("http://127.0.0.1:8698/api/v1/auth/register")
+            .json(&payload)
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::BAD_REQUEST));
+        let body = resp.take_string().await.unwrap();
+        assert!(body.contains("VALIDATION_ERROR"));
+        assert!(body.contains("first_name") || body.contains("last_name") || body.contains("phone_number"));
+    }
+
+    #[tokio::test]
     async fn test_login_validation_error() {
         let router = routes();
         let service = Service::new(router);
@@ -199,5 +222,49 @@ mod tests {
         assert_eq!(resp.status_code, Some(StatusCode::OK));
         let body = resp.take_string().await.unwrap();
         assert!(body.contains("Logout berhasil"));
+    }
+
+    #[tokio::test]
+    async fn test_users_endpoints_require_authorization() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let endpoints = vec![
+            "http://127.0.0.1:8698/api/v1/users",
+            "http://127.0.0.1:8698/api/v1/users/me",
+            "http://127.0.0.1:8698/api/v1/users/me/profile",
+            "http://127.0.0.1:8698/api/v1/users/me/settings",
+        ];
+
+        for ep in endpoints {
+            let mut resp = TestClient::get(ep).send(&service).await;
+            assert_eq!(resp.status_code, Some(StatusCode::UNAUTHORIZED));
+            let body = resp.take_string().await.unwrap();
+            assert!(body.contains("UNAUTHORIZED"));
+        }
+    }
+
+    #[tokio::test]
+    async fn test_update_me_validation_error() {
+        let router = routes();
+        let service = Service::new(router);
+
+        // Generate a valid access token for user 1
+        let settings = crate::config::Settings::load();
+        let token = crate::utils::jwt::generate_access_token(1, "testuser", &settings.jwt_secret, 3600).unwrap();
+
+        let payload = serde_json::json!({
+            "email": "invalid-email-format"
+        });
+
+        let mut resp = TestClient::patch("http://127.0.0.1:8698/api/v1/users/me")
+            .add_header("Authorization", format!("Bearer {}", token), true)
+            .json(&payload)
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::BAD_REQUEST));
+        let body = resp.take_string().await.unwrap();
+        assert!(body.contains("VALIDATION_ERROR"));
     }
 }

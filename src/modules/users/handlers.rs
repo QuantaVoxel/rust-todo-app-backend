@@ -3,7 +3,9 @@ use salvo::prelude::*;
 use crate::common::response::ApiResponse;
 use crate::common::validation::parse_and_validate;
 use crate::core::middleware::get_authenticated_user;
+use crate::error::ApiError;
 use crate::modules::users::dtos::*;
+use crate::modules::users::services::UserService;
 
 #[handler]
 pub async fn get_me(_req: &mut Request, depot: &mut Depot, res: &mut Response) {
@@ -15,12 +17,15 @@ pub async fn get_me(_req: &mut Request, depot: &mut Depot, res: &mut Response) {
         }
     };
 
-    res.render(Json(ApiResponse::new(format!("User info for ID {}", user.user_id))));
+    match UserService::get_me(user.user_id).await {
+        Ok(data) => res.render(Json(ApiResponse::new(data))),
+        Err(err) => res.render(err),
+    }
 }
 
 #[handler]
 pub async fn update_me(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    let _user = match get_authenticated_user(depot) {
+    let user = match get_authenticated_user(depot) {
         Ok(u) => u,
         Err(err) => {
             res.render(err);
@@ -28,7 +33,7 @@ pub async fn update_me(req: &mut Request, depot: &mut Depot, res: &mut Response)
         }
     };
 
-    let _dto = match parse_and_validate::<UpdateUserRequest>(req).await {
+    let dto = match parse_and_validate::<UpdateUserRequest>(req).await {
         Ok(d) => d,
         Err(err) => {
             res.render(err);
@@ -36,12 +41,15 @@ pub async fn update_me(req: &mut Request, depot: &mut Depot, res: &mut Response)
         }
     };
 
-    res.render(Json(ApiResponse::new("User updated")));
+    match UserService::update_me(user.user_id, dto).await {
+        Ok(data) => res.render(Json(ApiResponse::new(data))),
+        Err(err) => res.render(err),
+    }
 }
 
 #[handler]
 pub async fn delete_me(_req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    let _user = match get_authenticated_user(depot) {
+    let user = match get_authenticated_user(depot) {
         Ok(u) => u,
         Err(err) => {
             res.render(err);
@@ -49,13 +57,28 @@ pub async fn delete_me(_req: &mut Request, depot: &mut Depot, res: &mut Response
         }
     };
 
-    res.render(Json(ApiResponse::new("User deleted")));
+    match UserService::delete_me(user.user_id, Some(&user.token_jti)).await {
+        Ok(_) => res.render(Json(ApiResponse::new("Akun berhasil dihapus"))),
+        Err(err) => res.render(err),
+    }
 }
 
 #[handler]
-pub async fn search_users(req: &mut Request, _depot: &mut Depot, res: &mut Response) {
-    let _search = req.query::<String>("search").unwrap_or_default();
-    res.render(Json(ApiResponse::new(Vec::<String>::new())));
+pub async fn search_users(req: &mut Request, depot: &mut Depot, res: &mut Response) {
+    let user = match get_authenticated_user(depot) {
+        Ok(u) => u,
+        Err(err) => {
+            res.render(err);
+            return;
+        }
+    };
+
+    let search = req.query::<String>("search").unwrap_or_default();
+
+    match UserService::search_users(user.user_id, &search).await {
+        Ok(data) => res.render(Json(ApiResponse::new(data))),
+        Err(err) => res.render(err),
+    }
 }
 
 #[handler]
@@ -68,12 +91,15 @@ pub async fn get_profile(_req: &mut Request, depot: &mut Depot, res: &mut Respon
         }
     };
 
-    res.render(Json(ApiResponse::new(format!("Profile for user {}", user.user_id))));
+    match UserService::get_profile(user.user_id).await {
+        Ok(profile) => res.render(Json(ApiResponse::new(profile))),
+        Err(err) => res.render(err),
+    }
 }
 
 #[handler]
 pub async fn upsert_profile(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    let _user = match get_authenticated_user(depot) {
+    let user = match get_authenticated_user(depot) {
         Ok(u) => u,
         Err(err) => {
             res.render(err);
@@ -81,7 +107,7 @@ pub async fn upsert_profile(req: &mut Request, depot: &mut Depot, res: &mut Resp
         }
     };
 
-    let _dto = match parse_and_validate::<UpsertProfileRequest>(req).await {
+    let dto = match parse_and_validate::<UpsertProfileRequest>(req).await {
         Ok(d) => d,
         Err(err) => {
             res.render(err);
@@ -89,7 +115,10 @@ pub async fn upsert_profile(req: &mut Request, depot: &mut Depot, res: &mut Resp
         }
     };
 
-    res.render(Json(ApiResponse::new("Profile updated")));
+    match UserService::upsert_profile(user.user_id, dto).await {
+        Ok(data) => res.render(Json(ApiResponse::new(data))),
+        Err(err) => res.render(err),
+    }
 }
 
 #[handler]
@@ -102,21 +131,31 @@ pub async fn get_settings(_req: &mut Request, depot: &mut Depot, res: &mut Respo
         }
     };
 
-    res.render(Json(ApiResponse::new(format!("Settings for user {}", user.user_id))));
+    match UserService::get_settings(user.user_id).await {
+        Ok(data) => res.render(Json(ApiResponse::new(data))),
+        Err(err) => res.render(err),
+    }
 }
 
 #[handler]
 pub async fn upsert_setting(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    let _user = match get_authenticated_user(depot) {
+    let user = match get_authenticated_user(depot) {
         Ok(u) => u,
         Err(err) => {
             res.render(err);
             return;
         }
     };
-    let _key = req.param::<String>("setting_key").unwrap_or_default();
 
-    let _dto = match parse_and_validate::<UpsertSettingRequest>(req).await {
+    let key = match req.param::<String>("setting_key") {
+        Some(k) if !k.trim().is_empty() => k,
+        _ => {
+            res.render(ApiError::BadRequest("setting_key tidak valid".into()));
+            return;
+        }
+    };
+
+    let dto = match parse_and_validate::<UpsertSettingRequest>(req).await {
         Ok(d) => d,
         Err(err) => {
             res.render(err);
@@ -124,19 +163,32 @@ pub async fn upsert_setting(req: &mut Request, depot: &mut Depot, res: &mut Resp
         }
     };
 
-    res.render(Json(ApiResponse::new("Setting saved")));
+    match UserService::upsert_setting(user.user_id, key, dto).await {
+        Ok(data) => res.render(Json(ApiResponse::new(data))),
+        Err(err) => res.render(err),
+    }
 }
 
 #[handler]
 pub async fn delete_setting(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    let _user = match get_authenticated_user(depot) {
+    let user = match get_authenticated_user(depot) {
         Ok(u) => u,
         Err(err) => {
             res.render(err);
             return;
         }
     };
-    let _key = req.param::<String>("setting_key").unwrap_or_default();
 
-    res.render(Json(ApiResponse::new("Setting deleted")));
+    let key = match req.param::<String>("setting_key") {
+        Some(k) if !k.trim().is_empty() => k,
+        _ => {
+            res.render(ApiError::BadRequest("setting_key tidak valid".into()));
+            return;
+        }
+    };
+
+    match UserService::delete_setting(user.user_id, &key).await {
+        Ok(_) => res.render(Json(ApiResponse::new("Pengaturan berhasil dihapus"))),
+        Err(err) => res.render(err),
+    }
 }

@@ -27,6 +27,15 @@ impl AuthService {
         let password = dto
             .password
             .ok_or_else(|| ApiError::BadRequest("Password wajib diisi".into()))?;
+        let first_name = dto
+            .first_name
+            .ok_or_else(|| ApiError::BadRequest("First name wajib diisi".into()))?;
+        let last_name = dto
+            .last_name
+            .ok_or_else(|| ApiError::BadRequest("Last name wajib diisi".into()))?;
+        let phone_number = dto
+            .phone_number
+            .ok_or_else(|| ApiError::BadRequest("Phone number wajib diisi".into()))?;
 
         // Check if username or email is already in use
         let existing = users::Entity::find()
@@ -58,10 +67,24 @@ impl AuthService {
 
         let user = new_user.insert(db).await?;
 
+        // Save profile record
+        let new_profile = crate::entity::profiles::ActiveModel {
+            user_id: Set(user.user_id),
+            first_name: Set(Some(first_name.clone())),
+            last_name: Set(Some(last_name.clone())),
+            avatar_url: Set(dto.avatar_url),
+            phone_number: Set(Some(phone_number.clone())),
+            ..Default::default()
+        };
+        new_profile.insert(db).await?;
+
         Ok(RegisterResponse {
             user_id: user.user_id,
             username: user.username,
             email: user.email,
+            first_name,
+            last_name,
+            phone_number,
             created_at: user.created_at.with_timezone(&Utc),
         })
     }

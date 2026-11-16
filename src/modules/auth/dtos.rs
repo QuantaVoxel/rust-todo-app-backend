@@ -12,6 +12,18 @@ pub struct RegisterRequest {
 
     #[validate(required, min = 8)]
     pub password: Option<String>,
+
+    #[validate(required, min = 1, max = 255)]
+    pub first_name: Option<String>,
+
+    #[validate(required, min = 1, max = 255)]
+    pub last_name: Option<String>,
+
+    #[validate(required, min = 6, max = 20)]
+    pub phone_number: Option<String>,
+
+    #[validate(sometimes, url)]
+    pub avatar_url: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -19,6 +31,9 @@ pub struct RegisterResponse {
     pub user_id: i32,
     pub username: String,
     pub email: String,
+    pub first_name: String,
+    pub last_name: String,
+    pub phone_number: String,
     pub created_at: DateTime<Utc>,
 }
 
