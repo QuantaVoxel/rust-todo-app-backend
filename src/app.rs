@@ -26,6 +26,11 @@ pub async fn start() {
     // Check DB connection & run migrations
     db_starting().await;
 
+    // Spawn Background Worker (Reminders & Recurring Tasks)
+    tokio::spawn(async {
+        crate::core::worker::start_worker().await;
+    });
+
     tracing::info!("Starting Todo App Server on http://{}", socket_addr);
 
     Server::new(acceptor).serve(service).await;

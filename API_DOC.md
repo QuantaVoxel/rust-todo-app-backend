@@ -1059,7 +1059,7 @@ curl -X POST http://localhost:8080/api/v1/tasks/1/attachments \
 
 ## 10. Reminders Module
 
-Pengingat waktu untuk task.
+Pengingat waktu untuk task. **Background Worker** aplikasi secara berkala memantau tabel ini (interval 30 detik); saat `reminder_time` tercapai, worker otomatis membuat notifikasi di `user_notifications` dan menandai `notification_sent = true`.
 
 | Method | Endpoint | Deskripsi |
 | :--- | :--- | :--- |
@@ -1079,7 +1079,7 @@ Pengingat waktu untuk task.
 
 ## 11. Recurring Tasks Module
 
-Aturan pengulangan task berulang (relasi 1:1).
+Aturan pengulangan task berulang (relasi 1:1). **Background Worker** aplikasi memantau `next_due_date`; saat jatuh tempo, worker otomatis membuat instansi task baru, menduplikasi tag yang terpasang, mencatat log ke `activity_logs`, mengirim notifikasi ke user, dan memajukan `next_due_date` sesuai frekuensi (`daily`, `weekly`, `monthly`, `yearly`).
 
 | Method | Endpoint | Deskripsi |
 | :--- | :--- | :--- |
