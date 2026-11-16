@@ -187,6 +187,17 @@ pub struct CreateLocationRequest {
 }
 
 // ----------------------------------------------------
+// Attachment DTOs
+// ----------------------------------------------------
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct CreateAttachmentRequest {
+    #[validate(required)]
+    pub file_url: Option<String>,
+    pub file_type: Option<String>,
+}
+
+// ----------------------------------------------------
 // Sharing & Vote DTOs
 // ----------------------------------------------------
 

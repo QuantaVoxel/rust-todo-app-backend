@@ -315,4 +315,91 @@ mod tests {
         let body = resp.take_string().await.unwrap();
         assert!(body.contains("VALIDATION_ERROR"));
     }
+
+    #[tokio::test]
+    async fn test_classifications_require_auth() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let resp = TestClient::get("http://127.0.0.1:8698/api/v1/tags")
+            .send(&service)
+            .await;
+        assert_eq!(resp.status_code, Some(StatusCode::UNAUTHORIZED));
+
+        let resp = TestClient::get("http://127.0.0.1:8698/api/v1/categories")
+            .send(&service)
+            .await;
+        assert_eq!(resp.status_code, Some(StatusCode::UNAUTHORIZED));
+
+        let resp = TestClient::get("http://127.0.0.1:8698/api/v1/labels")
+            .send(&service)
+            .await;
+        assert_eq!(resp.status_code, Some(StatusCode::UNAUTHORIZED));
+    }
+
+    #[tokio::test]
+    async fn test_create_tag_validation_error() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let settings = crate::config::Settings::load();
+        let token = crate::utils::jwt::generate_access_token(1, "testuser", &settings.jwt_secret, 3600).unwrap();
+
+        let payload = serde_json::json!({
+            "name": ""
+        });
+
+        let mut resp = TestClient::post("http://127.0.0.1:8698/api/v1/tags")
+            .add_header("Authorization", format!("Bearer {}", token), true)
+            .json(&payload)
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::BAD_REQUEST));
+        let body = resp.take_string().await.unwrap();
+        assert!(body.contains("VALIDATION_ERROR"));
+    }
+
+    #[tokio::test]
+    async fn test_create_subtask_validation_error() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let settings = crate::config::Settings::load();
+        let token = crate::utils::jwt::generate_access_token(1, "testuser", &settings.jwt_secret, 3600).unwrap();
+
+        // Subtask missing title and status_id
+        let payload = serde_json::json!({});
+
+        let mut resp = TestClient::post("http://127.0.0.1:8698/api/v1/tasks/1/subtasks")
+            .add_header("Authorization", format!("Bearer {}", token), true)
+            .json(&payload)
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::BAD_REQUEST));
+        let body = resp.take_string().await.unwrap();
+        assert!(body.contains("VALIDATION_ERROR"));
+    }
+
+    #[tokio::test]
+    async fn test_connections_and_notifications_require_auth() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let resp = TestClient::get("http://127.0.0.1:8698/api/v1/connections")
+            .send(&service)
+            .await;
+        assert_eq!(resp.status_code, Some(StatusCode::UNAUTHORIZED));
+
+        let resp = TestClient::get("http://127.0.0.1:8698/api/v1/notifications")
+            .send(&service)
+            .await;
+        assert_eq!(resp.status_code, Some(StatusCode::UNAUTHORIZED));
+
+        let resp = TestClient::get("http://127.0.0.1:8698/api/v1/activity-logs")
+            .send(&service)
+            .await;
+        assert_eq!(resp.status_code, Some(StatusCode::UNAUTHORIZED));
+    }
 }
