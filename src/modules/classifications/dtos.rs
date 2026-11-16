@@ -19,3 +19,9 @@ pub struct LabelRequest {
     #[validate(required, min = 1, max = 255)]
     pub name: Option<String>,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct DeleteClassificationQuery {
+    #[serde(default)]
+    pub force: Option<bool>,
+}

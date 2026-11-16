@@ -50,4 +50,123 @@ mod tests {
             r#"{"error":{"code":"NOT_FOUND","message":"Route tidak ditemukan"}}"#
         );
     }
+
+    #[tokio::test]
+    async fn test_health_check_returns_ok() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let mut resp = TestClient::get("http://127.0.0.1:8698/api/v1/health")
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::OK));
+        let body = resp.take_string().await.unwrap();
+        assert_eq!(body, "OK");
+    }
+
+    #[tokio::test]
+    async fn test_protected_tasks_requires_authorization() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let mut resp = TestClient::get("http://127.0.0.1:8698/api/v1/tasks")
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::UNAUTHORIZED));
+        let body = resp.take_string().await.unwrap();
+        assert!(body.contains("UNAUTHORIZED"));
+    }
+
+    #[tokio::test]
+    async fn test_reference_enums_accessible_publicly() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let mut resp = TestClient::get("http://127.0.0.1:8698/api/v1/enums")
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::OK));
+        let body = resp.take_string().await.unwrap();
+        assert!(body.contains("vote_type"));
+    }
+
+    #[tokio::test]
+    async fn test_method_not_allowed_or_error_catcher() {
+        let router = routes();
+        let service = Service::new(router).catcher(Catcher::default().hoop(crate::core::middleware::error_catcher));
+
+        let mut resp = TestClient::post("http://127.0.0.1:8698/api/v1/health")
+            .send(&service)
+            .await;
+
+        // Either METHOD_NOT_ALLOWED (405) or NOT_FOUND (404)
+        let status = resp.status_code.unwrap();
+        assert!(status == StatusCode::METHOD_NOT_ALLOWED || status == StatusCode::NOT_FOUND);
+
+        let body = resp.take_string().await.unwrap();
+        assert!(body.contains(r#"{"error":{"code":"#));
+    }
+
+    #[tokio::test]
+    async fn test_register_validation_error() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let payload = serde_json::json!({
+            "username": "ab", // too short, min 3
+            "email": "not-an-email",
+            "password": "123" // too short, min 8
+        });
+
+        let mut resp = TestClient::post("http://127.0.0.1:8698/api/v1/auth/register")
+            .json(&payload)
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::BAD_REQUEST));
+        let body = resp.take_string().await.unwrap();
+        assert!(body.contains("VALIDATION_ERROR"));
+    }
+
+    #[tokio::test]
+    async fn test_login_validation_error() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let payload = serde_json::json!({
+            "email": "invalid-email"
+        });
+
+        let mut resp = TestClient::post("http://127.0.0.1:8698/api/v1/auth/login")
+            .json(&payload)
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::BAD_REQUEST));
+        let body = resp.take_string().await.unwrap();
+        assert!(body.contains("VALIDATION_ERROR"));
+    }
+
+    #[tokio::test]
+    async fn test_change_password_requires_auth() {
+        let router = routes();
+        let service = Service::new(router);
+
+        let payload = serde_json::json!({
+            "old_password": "password123",
+            "new_password": "newpassword123"
+        });
+
+        let mut resp = TestClient::post("http://127.0.0.1:8698/api/v1/auth/change-password")
+            .json(&payload)
+            .send(&service)
+            .await;
+
+        assert_eq!(resp.status_code, Some(StatusCode::UNAUTHORIZED));
+        let body = resp.take_string().await.unwrap();
+        assert!(body.contains("UNAUTHORIZED"));
+    }
 }

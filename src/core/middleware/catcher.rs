@@ -1,18 +1,26 @@
+use salvo::http::StatusCode;
 use salvo::prelude::*;
 
 use crate::error::ApiError;
 
-/// Handler to catch 404 Not Found responses and return standardized JSON error.
+/// Catcher middleware that catches all unhandled HTTP client (4xx) and server (5xx)
+/// error status codes (e.g. 404 Not Found, 405 Method Not Allowed, 500 Server Error)
+/// and formats them into the standard API JSON error response structure.
 #[handler]
-pub async fn not_found_handler(
+pub async fn error_catcher(
     _req: &Request,
     _depot: &Depot,
     res: &mut Response,
     ctrl: &mut FlowCtrl,
 ) {
-    if res.status_code.is_none() || res.status_code == Some(StatusCode::NOT_FOUND) {
-        res.status_code(StatusCode::NOT_FOUND);
-        res.render(ApiError::NotFound("Route tidak ditemukan".to_string()));
+    let status = res.status_code.unwrap_or(StatusCode::NOT_FOUND);
+
+    if status.is_client_error() || status.is_server_error() {
+        let err = ApiError::from_status_code(status, None);
+        res.status_code(status);
+        res.render(err);
         ctrl.skip_rest();
     }
 }
+
+pub use error_catcher as not_found_handler;

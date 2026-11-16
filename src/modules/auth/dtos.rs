@@ -51,12 +51,20 @@ pub struct RefreshTokenRequest {
     pub refresh_token: Option<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RefreshTokenResponse {
+    pub access_token: String,
+    pub refresh_token: String,
+    pub expires_in: i64,
+    pub user: UserSummary,
+}
+
 #[derive(Debug, Deserialize, Validate)]
 pub struct ChangePasswordRequest {
     #[validate(required)]
     pub old_password: Option<String>,
 
-    #[validate(required, min = 8, confirmed)]
+    #[validate(required, min = 8)]
     pub new_password: Option<String>,
 
     pub new_password_confirmation: Option<String>,

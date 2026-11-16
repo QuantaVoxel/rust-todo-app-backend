@@ -5,7 +5,7 @@ use migration::{Migrator, MigratorTrait};
 
 use crate::config::Settings;
 use crate::core::db::connection;
-use crate::core::middleware::not_found_handler;
+use crate::core::middleware::error_catcher;
 use crate::core::routes;
 
 pub async fn start() {
@@ -18,7 +18,7 @@ pub async fn start() {
 
     let acceptor = TcpListener::new(socket_addr).bind().await;
     let router: Router = routes::routes();
-    let service = Service::new(router).catcher(Catcher::default().hoop(not_found_handler));
+    let service = Service::new(router).catcher(Catcher::default().hoop(error_catcher));
 
     // Check DB connection & run migrations
     db_starting().await;

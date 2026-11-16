@@ -9,16 +9,31 @@ pub fn routes() -> Router {
         .push(
             Router::with_path("tags")
                 .get(handlers::list_tags)
-                .post(handlers::create_tag),
+                .post(handlers::create_tag)
+                .push(
+                    Router::with_path("{tag_id}")
+                        .patch(handlers::update_tag)
+                        .delete(handlers::delete_tag),
+                ),
         )
         .push(
             Router::with_path("categories")
                 .get(handlers::list_categories)
-                .post(handlers::create_category),
+                .post(handlers::create_category)
+                .push(
+                    Router::with_path("{category_id}")
+                        .patch(handlers::update_category)
+                        .delete(handlers::delete_category),
+                ),
         )
         .push(
             Router::with_path("labels")
                 .get(handlers::list_labels)
-                .post(handlers::create_label),
+                .post(handlers::create_label)
+                .push(
+                    Router::with_path("{label_id}")
+                        .patch(handlers::update_label)
+                        .delete(handlers::delete_label),
+                ),
         )
 }

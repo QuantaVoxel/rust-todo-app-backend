@@ -32,6 +32,7 @@ mod m20261116_122504_create_task_history;
 mod m20261116_122505_create_task_priority_history;
 mod m20261116_122506_create_task_labels_history;
 mod m20261116_122507_create_task_notes_history;
+mod m20261116_122508_seed_lookups;
 
 pub struct Migrator;
 
@@ -71,6 +72,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20261116_122505_create_task_priority_history::Migration),
             Box::new(m20261116_122506_create_task_labels_history::Migration),
             Box::new(m20261116_122507_create_task_notes_history::Migration),
+            Box::new(m20261116_122508_seed_lookups::Migration),
         ]
     }
 }
