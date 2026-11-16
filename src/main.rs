@@ -1,20 +1,18 @@
 use dotenv::dotenv;
 
-pub mod modules;
 pub mod app;
-pub mod config;
-pub mod error;
 pub mod common;
-pub mod utils;
+pub mod config;
 pub mod core;
+pub mod entity;
+pub mod error;
+pub mod modules;
+pub mod utils;
 
 #[tokio::main]
 async fn main() {
-
     dotenv().ok();
     tracing_subscriber::fmt().init();
 
-    
     app::start().await;
-
 }

@@ -16,5 +16,7 @@ log = "0.4.35"
 chrono = { version = "0.4.45", features = ["serde"] }
 tracing = "0.1.44"
 bcrypt = "0.19.3"
+thiserror = "2.0.21"
+jsonwebtoken = "11.1.0"
 
 migration = {path = "migration"}
