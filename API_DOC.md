@@ -25,6 +25,12 @@ Aplikasi menyediakan UI interaktif untuk eksplorasi dan pengujian API secara lan
 - **Cakupan Rute**: Seluruh 88 rute API di 20 modul telah terdaftar lengkap (`System`, `Auth`, `Users`, `Profiles`, `Settings`, `Lookups`, `Tasks`, `Subtasks`, `Notes`, `Comments`, `Attachments`, `Reminders`, `Recurring Tasks`, `Locations`, `Sharing`, `Votes`, `Audit History`, `Integrations`, `Tags`, `Categories`, `Labels`, `Connections`, `Notifications`, `Activity Logs`).
 - **Autentikasi di Swagger**: Klik tombol **Authorize** di pojok kanan atas Swagger UI, masukkan token JWT hasil dari login/register dengan format `Bearer <token>` (atau cukup `<token>`), lalu seluruh request terproteksi akan terotentikasi secara otomatis.
 
+### Postman Collection & Environment
+Telah disediakan berkas koleksi Postman siap pakai di repositori:
+- **Collection**: [postman_collection.json](file:///home/venom/RustroverProjects/todo-app-v2/postman_collection.json) (Format v2.1.0 dengan 99 request terorganisir per folder modul, lengkap dengan request body JSON dan test script otomatis untuk menyimpan token).
+- **Environment**: [postman_environment.json](file:///home/venom/RustroverProjects/todo-app-v2/postman_environment.json) (Variabel `base_url`, `token`, `refresh_token`, `task_id`, dll).
+- **Fitur Otomasi Token**: Saat mengeksekusi request `Register`, `Login`, atau `Refresh Token`, script pengujian Postman secara otomatis menyimpan `access_token` dan `refresh_token` ke dalam variabel lingkungan dan koleksi, sehingga seluruh request berikutnya langsung terautentikasi tanpa perlu copy-paste token manual.
+
 ### Security Headers & CORS
 Setiap response API menyertakan header keamanan dan konfigurasi CORS:
 - `Access-Control-Allow-Origin: *`

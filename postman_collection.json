@@ -1,0 +1,3802 @@
+{
+  "info": {
+    "_postman_id": "c1f7b1a0-4b3e-4b6e-8d8a-9f5b2b2b1a01",
+    "name": "Todo App v2 REST API",
+    "description": "Comprehensive Postman Collection for Todo App v2 backend built with Salvo 1.1.2, SeaORM 2.0, and PostgreSQL. Covers all 88 endpoints across 20 modules with request bodies and token automation.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "task_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "subtask_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "note_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "comment_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "attachment_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "reminder_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "tag_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "category_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "label_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "location_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "connection_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "notification_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "integration_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "2",
+      "type": "string"
+    },
+    {
+      "key": "setting_key",
+      "value": "theme",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "OpenAPI Specification (JSON)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api-doc/openapi.json",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api-doc",
+                "openapi.json"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Static File Serving",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/uploads/test_asset.txt",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "uploads",
+                "test_asset.txt"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Auth",
+      "item": [
+        {
+          "name": "Register New User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecretPassword123!\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"phone_number\": \"+628123456789\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    var res = pm.response.json();",
+                  "    if (res.access_token) {",
+                  "        pm.collectionVariables.set(\"token\", res.access_token);",
+                  "        pm.environment.set(\"token\", res.access_token);",
+                  "        console.log(\"Token saved to collection & environment\");",
+                  "    }",
+                  "    if (res.refresh_token) {",
+                  "        pm.collectionVariables.set(\"refresh_token\", res.refresh_token);",
+                  "        pm.environment.set(\"refresh_token\", res.refresh_token);",
+                  "        console.log(\"Refresh token saved to collection & environment\");",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"john_doe\",\n  \"password\": \"SecretPassword123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    var res = pm.response.json();",
+                  "    if (res.access_token) {",
+                  "        pm.collectionVariables.set(\"token\", res.access_token);",
+                  "        pm.environment.set(\"token\", res.access_token);",
+                  "        console.log(\"Token saved to collection & environment\");",
+                  "    }",
+                  "    if (res.refresh_token) {",
+                  "        pm.collectionVariables.set(\"refresh_token\", res.refresh_token);",
+                  "        pm.environment.set(\"refresh_token\", res.refresh_token);",
+                  "        console.log(\"Refresh token saved to collection & environment\");",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    var res = pm.response.json();",
+                  "    if (res.access_token) {",
+                  "        pm.collectionVariables.set(\"token\", res.access_token);",
+                  "        pm.environment.set(\"token\", res.access_token);",
+                  "        console.log(\"Token saved to collection & environment\");",
+                  "    }",
+                  "    if (res.refresh_token) {",
+                  "        pm.collectionVariables.set(\"refresh_token\", res.refresh_token);",
+                  "        pm.environment.set(\"refresh_token\", res.refresh_token);",
+                  "        console.log(\"Refresh token saved to collection & environment\");",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout (POST)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Logout (DELETE)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/change-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "change-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"old_password\": \"SecretPassword123!\",\n  \"new_password\": \"NewSecretPassword456!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Users & Profile & Settings",
+      "item": [
+        {
+          "name": "Get Current User (Me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Current User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.updated@example.com\",\n  \"username\": \"john_updated\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Current User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users?search=john",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "john"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "profile"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upsert User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"bio\": \"Senior Backend Software Engineer specializing in Rust and distributed systems.\",\n  \"avatar_url\": \"https://avatars.githubusercontent.com/u/1234567\",\n  \"phone_number\": \"+628123456789\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get All User Settings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me/settings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "settings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upsert User Setting",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me/settings/:setting_key",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "settings",
+                ":setting_key"
+              ],
+              "variable": [
+                {
+                  "key": "setting_key",
+                  "value": "{{setting_key}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"setting_value\": \"dark\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete User Setting",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me/settings/:setting_key",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "settings",
+                ":setting_key"
+              ],
+              "variable": [
+                {
+                  "key": "setting_key",
+                  "value": "{{setting_key}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Lookups (Reference Data)",
+      "item": [
+        {
+          "name": "Get Task Statuses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/statuses",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "statuses"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Get Task Priorities",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/priorities",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "priorities"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Get External Apps",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/external-apps",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "external-apps"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Get Reference Enums",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/enums",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "enums"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Tasks Core",
+      "item": [
+        {
+          "name": "List Tasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks?status_id=1&priority_id=2&page=1&per_page=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks"
+              ],
+              "query": [
+                {
+                  "key": "status_id",
+                  "value": "1"
+                },
+                {
+                  "key": "priority_id",
+                  "value": "2"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Selesaikan Arsitektur Backend Todo App\",\n  \"description\": \"Implementasikan modul REST API lengkap Salvo dan SeaORM 2.0 dengan OpenAPI specification.\",\n  \"status_id\": 1,\n  \"priority_id\": 2,\n  \"due_date\": \"2026-11-20T17:00:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var res = pm.response.json();",
+                  "    if (res.task && res.task.task_id) {",
+                  "        pm.collectionVariables.set(\"task_id\", res.task.task_id);",
+                  "        pm.environment.set(\"task_id\", res.task.task_id);",
+                  "    } else if (res.data && res.data.task_id) {",
+                  "        pm.collectionVariables.set(\"task_id\", res.data.task_id);",
+                  "        pm.environment.set(\"task_id\", res.data.task_id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Task Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Selesaikan Arsitektur Backend Todo App (Updated)\",\n  \"description\": \"Dokumentasikan endpoint OpenAPI dan ekspor koleksi Postman.\",\n  \"status_id\": 2,\n  \"priority_id\": 3,\n  \"due_date\": \"2026-11-25T17:00:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update Task Progress",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/progress",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "progress"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"progress_percentage\": 75\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Archive Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/archive",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "archive"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Unarchive Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/unarchive",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "unarchive"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Subtasks",
+      "item": [
+        {
+          "name": "List Subtasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/subtasks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "subtasks"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Subtask",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/subtasks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "subtasks"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tulis Unit Test Endpoint\",\n  \"position\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var res = pm.response.json();",
+                  "    if (res.data && res.data.subtask_id) {",
+                  "        pm.collectionVariables.set(\"subtask_id\", res.data.subtask_id);",
+                  "        pm.environment.set(\"subtask_id\", res.data.subtask_id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Subtask",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/subtasks/:subtask_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "subtasks",
+                ":subtask_id"
+              ],
+              "variable": [
+                {
+                  "key": "subtask_id",
+                  "value": "{{subtask_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tulis Unit Test Endpoint (Selesai)\",\n  \"is_completed\": true,\n  \"position\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Subtask",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/subtasks/:subtask_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "subtasks",
+                ":subtask_id"
+              ],
+              "variable": [
+                {
+                  "key": "subtask_id",
+                  "value": "{{subtask_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Notes & History",
+      "item": [
+        {
+          "name": "List Notes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/notes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "notes"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/notes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "notes"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Catatan Perancangan Skema\",\n  \"content\": \"Gunakan SeaORM 2.0 dengan strongly-typed columns dan validasi Scrutiny pada DTO.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var res = pm.response.json();",
+                  "    if (res.data && res.data.note_id) {",
+                  "        pm.collectionVariables.set(\"note_id\", res.data.note_id);",
+                  "        pm.environment.set(\"note_id\", res.data.note_id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Note",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notes/:note_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notes",
+                ":note_id"
+              ],
+              "variable": [
+                {
+                  "key": "note_id",
+                  "value": "{{note_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Catatan Perancangan Skema (Revisi 2)\",\n  \"content\": \"Tambahkan rate limiting dan Swagger UI documentation.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get Note Edit History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notes/:note_id/history",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notes",
+                ":note_id",
+                "history"
+              ],
+              "variable": [
+                {
+                  "key": "note_id",
+                  "value": "{{note_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Note",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notes/:note_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notes",
+                ":note_id"
+              ],
+              "variable": [
+                {
+                  "key": "note_id",
+                  "value": "{{note_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Comments",
+      "item": [
+        {
+          "name": "List Comments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/comments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "comments"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/comments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "comments"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Fitur Swagger UI dan Scalar sudah terpasang dengan sukses!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var res = pm.response.json();",
+                  "    if (res.data && res.data.comment_id) {",
+                  "        pm.collectionVariables.set(\"comment_id\", res.data.comment_id);",
+                  "        pm.environment.set(\"comment_id\", res.data.comment_id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Comment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/comments/:comment_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "comments",
+                ":comment_id"
+              ],
+              "variable": [
+                {
+                  "key": "comment_id",
+                  "value": "{{comment_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Koleksi Postman juga telah digenerate lengkap.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Comment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/comments/:comment_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "comments",
+                ":comment_id"
+              ],
+              "variable": [
+                {
+                  "key": "comment_id",
+                  "value": "{{comment_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Attachments",
+      "item": [
+        {
+          "name": "List Attachments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/attachments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "attachments"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Attachment (JSON URL)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/attachments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "attachments"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"file_url\": \"https://example.com/assets/diagram.png\",\n  \"file_type\": \"image/png\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var res = pm.response.json();",
+                  "    if (res.data && res.data.attachment_id) {",
+                  "        pm.collectionVariables.set(\"attachment_id\", res.data.attachment_id);",
+                  "        pm.environment.set(\"attachment_id\", res.data.attachment_id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Upload Attachment (Multipart Form-Data)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/attachments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "attachments"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Attachment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/attachments/:attachment_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attachments",
+                ":attachment_id"
+              ],
+              "variable": [
+                {
+                  "key": "attachment_id",
+                  "value": "{{attachment_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Reminders",
+      "item": [
+        {
+          "name": "List Reminders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/reminders",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "reminders"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Reminder",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/reminders",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "reminders"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remind_at\": \"2026-11-20T08:00:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var res = pm.response.json();",
+                  "    if (res.data && res.data.reminder_id) {",
+                  "        pm.collectionVariables.set(\"reminder_id\", res.data.reminder_id);",
+                  "        pm.environment.set(\"reminder_id\", res.data.reminder_id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Reminder",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reminders/:reminder_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reminders",
+                ":reminder_id"
+              ],
+              "variable": [
+                {
+                  "key": "reminder_id",
+                  "value": "{{reminder_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remind_at\": \"2026-11-20T09:00:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Reminder",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reminders/:reminder_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reminders",
+                ":reminder_id"
+              ],
+              "variable": [
+                {
+                  "key": "reminder_id",
+                  "value": "{{reminder_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Recurring Tasks",
+      "item": [
+        {
+          "name": "Get Task Recurrence",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/recurrence",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "recurrence"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upsert Task Recurrence",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/recurrence",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "recurrence"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"frequency\": \"weekly\",\n  \"interval_value\": 1,\n  \"end_date\": \"2026-12-31T23:59:59Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Task Recurrence",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/recurrence",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "recurrence"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Locations",
+      "item": [
+        {
+          "name": "List All Locations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/locations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "locations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Location",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/locations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "locations"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Kantor Pusat Jakarta\",\n  \"address\": \"Jl. Jenderal Sudirman Kav. 52-53\",\n  \"latitude\": -6.2255,\n  \"longitude\": 106.8095\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var res = pm.response.json();",
+                  "    if (res.data && res.data.location_id) {",
+                  "        pm.collectionVariables.set(\"location_id\", res.data.location_id);",
+                  "        pm.environment.set(\"location_id\", res.data.location_id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Task Locations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/locations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "locations"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Link Location to Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/locations/:location_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "locations",
+                ":location_id"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                },
+                {
+                  "key": "location_id",
+                  "value": "{{location_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Unlink Location from Task",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/locations/:location_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "locations",
+                ":location_id"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                },
+                {
+                  "key": "location_id",
+                  "value": "{{location_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. Sharing & Collaboration",
+      "item": [
+        {
+          "name": "List Task Shares",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/shares",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "shares"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Share Task or Update Permission",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/shares/:user_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "shares",
+                ":user_id"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                },
+                {
+                  "key": "user_id",
+                  "value": "{{user_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permission\": \"edit\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Revoke Task Share",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/shares/:user_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "shares",
+                ":user_id"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                },
+                {
+                  "key": "user_id",
+                  "value": "{{user_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "14. Votes",
+      "item": [
+        {
+          "name": "Get Task Votes Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/votes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "votes"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cast or Update Vote",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/vote",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "vote"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vote_type\": \"up\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Remove Vote",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/vote",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "vote"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "15. Audit History",
+      "item": [
+        {
+          "name": "Get Status Change History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/history/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "history",
+                "status"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Priority Change History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/history/priority",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "history",
+                "priority"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Label Changes History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/history/labels",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "history",
+                "labels"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "16. Integrations",
+      "item": [
+        {
+          "name": "List Task Integrations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/integrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "integrations"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Link External App Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/integrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "integrations"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"app_id\": 1,\n  \"external_id\": \"GH-ISSUE-42\",\n  \"sync_status\": \"synced\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var res = pm.response.json();",
+                  "    if (res.data && res.data.integration_id) {",
+                  "        pm.collectionVariables.set(\"integration_id\", res.data.integration_id);",
+                  "        pm.environment.set(\"integration_id\", res.data.integration_id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unlink External App Record",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/integrations/:integration_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "integrations",
+                ":integration_id"
+              ],
+              "variable": [
+                {
+                  "key": "integration_id",
+                  "value": "{{integration_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "17. Task Classification Mounts",
+      "item": [
+        {
+          "name": "Attach Tag to Task",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/tags/:tag_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "tags",
+                ":tag_id"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                },
+                {
+                  "key": "tag_id",
+                  "value": "{{tag_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Detach Tag from Task",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/tags/:tag_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "tags",
+                ":tag_id"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                },
+                {
+                  "key": "tag_id",
+                  "value": "{{tag_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Attach Category to Task",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/categories/:category_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "categories",
+                ":category_id"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                },
+                {
+                  "key": "category_id",
+                  "value": "{{category_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Detach Category from Task",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/categories/:category_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "categories",
+                ":category_id"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                },
+                {
+                  "key": "category_id",
+                  "value": "{{category_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Attach Label to Task",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/labels/:label_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "labels",
+                ":label_id"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                },
+                {
+                  "key": "label_id",
+                  "value": "{{label_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Detach Label from Task",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks/:task_id/labels/:label_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                ":task_id",
+                "labels",
+                ":label_id"
+              ],
+              "variable": [
+                {
+                  "key": "task_id",
+                  "value": "{{task_id}}"
+                },
+                {
+                  "key": "label_id",
+                  "value": "{{label_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "18. Classifications (Tags, Categories, Labels)",
+      "item": [
+        {
+          "name": "List Tags",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tags",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tags"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Tag",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tags",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tags"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Backend\",\n  \"color\": \"#3B82F6\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var res = pm.response.json();",
+                  "    if (res.data && res.data.tag_id) {",
+                  "        pm.collectionVariables.set(\"tag_id\", res.data.tag_id);",
+                  "        pm.environment.set(\"tag_id\", res.data.tag_id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Tag",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tags/:tag_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tags",
+                ":tag_id"
+              ],
+              "variable": [
+                {
+                  "key": "tag_id",
+                  "value": "{{tag_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Backend API\",\n  \"color\": \"#2563EB\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Tag",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tags/:tag_id?force=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tags",
+                ":tag_id"
+              ],
+              "query": [
+                {
+                  "key": "force",
+                  "value": "false"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "tag_id",
+                  "value": "{{tag_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Engineering\",\n  \"color\": \"#10B981\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var res = pm.response.json();",
+                  "    if (res.data && res.data.category_id) {",
+                  "        pm.collectionVariables.set(\"category_id\", res.data.category_id);",
+                  "        pm.environment.set(\"category_id\", res.data.category_id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/categories/:category_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories",
+                ":category_id"
+              ],
+              "variable": [
+                {
+                  "key": "category_id",
+                  "value": "{{category_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Software Engineering\",\n  \"color\": \"#059669\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/categories/:category_id?force=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories",
+                ":category_id"
+              ],
+              "query": [
+                {
+                  "key": "force",
+                  "value": "false"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "category_id",
+                  "value": "{{category_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Labels",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/labels",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "labels"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Label",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/labels",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "labels"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Urgent\",\n  \"color\": \"#EF4444\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var res = pm.response.json();",
+                  "    if (res.data && res.data.label_id) {",
+                  "        pm.collectionVariables.set(\"label_id\", res.data.label_id);",
+                  "        pm.environment.set(\"label_id\", res.data.label_id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Label",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/labels/:label_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "labels",
+                ":label_id"
+              ],
+              "variable": [
+                {
+                  "key": "label_id",
+                  "value": "{{label_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Critical\",\n  \"color\": \"#DC2626\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Label",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/labels/:label_id?force=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "labels",
+                ":label_id"
+              ],
+              "query": [
+                {
+                  "key": "force",
+                  "value": "false"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "label_id",
+                  "value": "{{label_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "19. Connections",
+      "item": [
+        {
+          "name": "List Connections",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/connections?status=accepted",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "connections"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "accepted"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Send Connection Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/connections",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "connections"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"connected_user_id\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var res = pm.response.json();",
+                  "    if (res.data && res.data.connection_id) {",
+                  "        pm.collectionVariables.set(\"connection_id\", res.data.connection_id);",
+                  "        pm.environment.set(\"connection_id\", res.data.connection_id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Connection Status (Accept/Block)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/connections/:connection_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "connections",
+                ":connection_id"
+              ],
+              "variable": [
+                {
+                  "key": "connection_id",
+                  "value": "{{connection_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"accepted\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Connection",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/connections/:connection_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "connections",
+                ":connection_id"
+              ],
+              "variable": [
+                {
+                  "key": "connection_id",
+                  "value": "{{connection_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "20. Notifications",
+      "item": [
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications?is_read=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "is_read",
+                  "value": "false"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Unread Notifications Count",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/unread-count",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "unread-count"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/:notification_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                ":notification_id"
+              ],
+              "variable": [
+                {
+                  "key": "notification_id",
+                  "value": "{{notification_id}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_read\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Mark All Notifications Read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/read-all",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "read-all"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/:notification_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                ":notification_id"
+              ],
+              "variable": [
+                {
+                  "key": "notification_id",
+                  "value": "{{notification_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "21. Activity Logs",
+      "item": [
+        {
+          "name": "List Activity Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/activity-logs?entity_type=task&page=1&per_page=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "activity-logs"
+              ],
+              "query": [
+                {
+                  "key": "entity_type",
+                  "value": "task"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
