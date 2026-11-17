@@ -40,7 +40,8 @@ pub async fn run_worker_once(db: &DatabaseConnection) -> Result<WorkerRunSummary
                 created_at: Set(Utc::now().into()),
                 ..Default::default()
             };
-            let _ = notif.insert(db).await?;
+            let inserted_notif = notif.insert(db).await?;
+            crate::core::realtime::notification_hub().publish_model(&inserted_notif);
 
             let mut active: reminders::ActiveModel = reminder.into();
             active.notification_sent = Set(true);
@@ -111,7 +112,9 @@ pub async fn run_worker_once(db: &DatabaseConnection) -> Result<WorkerRunSummary
                 created_at: Set(now_dt),
                 ..Default::default()
             };
-            let _ = notif.insert(db).await;
+            if let Ok(inserted_notif) = notif.insert(db).await {
+                crate::core::realtime::notification_hub().publish_model(&inserted_notif);
+            }
 
             // Advance next_due_date
             let current_next = rec.next_due_date;
@@ -133,26 +136,42 @@ pub async fn run_worker_once(db: &DatabaseConnection) -> Result<WorkerRunSummary
     Ok(summary)
 }
 
-pub async fn start_worker() {
+pub async fn start_worker(mut shutdown_rx: tokio::sync::watch::Receiver<bool>) {
     tracing::info!("Background Worker started (interval: 30 detik)");
     let mut interval = tokio::time::interval(Duration::from_secs(30));
 
     loop {
-        interval.tick().await;
-
-        let db = get_db_connection();
-        match run_worker_once(db).await {
-            Ok(summary) => {
-                if summary.reminders_processed > 0 || summary.recurring_spawned > 0 {
-                    tracing::info!(
-                        "Worker tick selesai: {} pengingat diproses, {} task berulang dibuat",
-                        summary.reminders_processed,
-                        summary.recurring_spawned
-                    );
+        tokio::select! {
+            _ = interval.tick() => {
+                if *shutdown_rx.borrow() {
+                    tracing::info!("Background Worker berhenti (graceful shutdown)");
+                    break;
+                }
+                let db = get_db_connection();
+                match run_worker_once(db).await {
+                    Ok(summary) => {
+                        crate::core::metrics::record_worker_tick(
+                            summary.reminders_processed,
+                            summary.recurring_spawned,
+                        );
+                        if summary.reminders_processed > 0 || summary.recurring_spawned > 0 {
+                            tracing::info!(
+                                "Worker tick selesai: {} pengingat diproses, {} task berulang dibuat",
+                                summary.reminders_processed,
+                                summary.recurring_spawned
+                            );
+                        }
+                    }
+                    Err(err) => {
+                        tracing::error!("Error pada background worker tick: {:?}", err);
+                    }
                 }
             }
-            Err(err) => {
-                tracing::error!("Error pada background worker tick: {:?}", err);
+            _ = shutdown_rx.changed() => {
+                if *shutdown_rx.borrow() {
+                    tracing::info!("Background Worker menerima sinyal shutdown, berhenti dengan aman.");
+                    break;
+                }
             }
         }
     }

@@ -7,6 +7,8 @@ pub fn routes() -> Router {
     Router::with_path("notifications")
         .hoop(auth_middleware)
         .get(handlers::list_notifications)
+        .push(Router::with_path("stream").get(handlers::sse_notifications))
+        .push(Router::with_path("ws").get(handlers::ws_notifications))
         .push(Router::with_path("unread-count").get(handlers::get_unread_count))
         .push(Router::with_path("read-all").post(handlers::mark_all_read))
         .push(

@@ -52,6 +52,27 @@ File yang diunggah dapat diakses langsung oleh browser atau klien HTTP pada rute
 - **Base URL Asset**: `http://localhost:8080/uploads/{filename}` (atau `/api/v1/uploads/{filename}`)
 - Mendukung streaming, caching, ETag, dan resume download via HTTP Range headers.
 
+### Graceful Shutdown, HTTP Compression & Request Timeout
+- **Graceful Shutdown**: Server menangkap sinyal OS (`SIGINT` / `Ctrl+C` dan `SIGTERM` / `SIGQUIT`), menandai status *drain* (`shutting_down = true`), menghentikan *background worker* dengan aman, dan memberikan waktu hingga **25 detik** bagi *in-flight requests* untuk selesai sebelum menutup koneksi.
+- **HTTP Compression**: Mengompresi response JSON dan teks secara otomatis (`brotli`, `zstd`, `gzip`, `deflate`) untuk payload $\ge 512$ bytes.
+- **Request Timeout**: Membatasi durasi eksekusi request standar maksimal **30 detik** (mengembalikan `503 Service Unavailable` dengan kode `REQUEST_TIMEOUT` jika terlampaui), sambil mengecualikan koneksi streaming jangka panjang (`/notifications/stream` dan `/notifications/ws`).
+
+### Observability & System Metrics (`/health/ready` & `/metrics`)
+- **Liveness Probe (`GET /api/v1/health`)**: Mengembalikan `200 OK` (`"OK"`).
+- **Readiness Probe (`GET /api/v1/health/ready`)**: Memeriksa status *shutdown drain* dan latensi ping database PostgreSQL (`latency_ms`). Mengembalikan `200 OK` saat siap atau `503 Service Unavailable` saat *degraded* / *shutting down*.
+- **System Metrics (`GET /api/v1/metrics`)**:
+  - Format JSON (default): Menyajikan `uptime_seconds`, `total_http_requests`, `active_realtime_connections`, `worker_ticks_total`, `worker_reminders_processed_total`, `worker_recurring_spawned_total`, dan `database_connected`.
+  - Format Prometheus (`GET /api/v1/metrics?format=prometheus` atau header `Accept: text/plain`): Menyajikan metrik standar kompatibel scraper Prometheus.
+
+### Database Seeder untuk Demo & Pengujian Frontend (`POST /api/v1/seed/demo`)
+Untuk memudahkan pengujian frontend maupun eksplorasi via Postman tanpa harus membuat data dari nol, tersedia seeder **idempotent**:
+- **Via Endpoint HTTP**: `POST /api/v1/seed/demo`
+- **Via CLI / Startup Flag**: `cargo run -- --seed` atau variabel environment `SEED_DEMO_DATA=true`
+- **Akun Demo yang Dibuat**:
+  - **Primary Demo Account**: Username `demo_user` | Email `demo@todoapp.local` | Password `Password123!`
+  - **Collaborator Account**: Username `collab_user` | Email `collab@todoapp.local` | Password `Password123!`
+- Otomatis mengisi profil, pengaturan, koneksi antar-user, tags, categories, labels, lokasi, 3 contoh task lengkap dengan subtasks, notes, comments, reminders, recurring rules, task sharing, votes, dan notifikasi real-time.
+
 ### Standar Format Response Berhasil
 ```json
 {
@@ -1256,17 +1277,43 @@ Hubungan pertemanan/koneksi antar pengguna.
 
 ---
 
-## 19. Notifikasi Module
+## 19. Notifikasi & Real-time Streaming Module
 
-Notifikasi sistem, pengingat, komentar, dan sharing. Dibuat otomatis oleh sistem.
+Notifikasi sistem, pengingat, komentar, dan sharing. Dibuat otomatis oleh sistem dan dikirim secara *real-time* melalui **Server-Sent Events (SSE)** maupun **WebSocket** menggunakan central `NotificationHub` (`tokio::sync::broadcast`).
 
 | Method | Endpoint | Deskripsi |
 | :--- | :--- | :--- |
 | `GET` | `/notifications?is_read=` | Daftar notifikasi user login |
 | `GET` | `/notifications/unread-count` | Jumlah notifikasi belum dibaca |
+| `GET` | `/notifications/stream` | **Real-time SSE Stream** (`text/event-stream`) dengan keep-alive 15 detik |
+| `GET` | `/notifications/ws` | **Real-time WebSocket** (`ws://.../api/v1/notifications/ws`) full-duplex |
 | `PATCH` | `/notifications/{notification_id}` | Tandai sudah dibaca (`{"is_read": true}`) |
 | `POST` | `/notifications/read-all` | Tandai seluruh notifikasi sudah dibaca |
 | `DELETE` | `/notifications/{notification_id}` | Hapus notifikasi |
+
+### 19.1 Autentikasi Real-time (Header & Query Token)
+Karena browser `EventSource` dan `WebSocket` tidak mendukung pengiriman custom HTTP header secara langsung, kedua endpoint real-time mendukung autentikasi melalui:
+1. **Header Standar**: `Authorization: Bearer <access_token>`
+2. **Query Parameter**: `?token=<access_token>` (misal: `/api/v1/notifications/stream?token=eyJ...`)
+
+### 19.2 Format Event Real-time (`notification.created`)
+Saat background worker memproses pengingat/task berulang, atau saat pengguna lain membagikan task / memberi komentar, server langsung mem-push event JSON ke kanal milik pengguna terkait:
+```json
+{
+  "event": "notification.created",
+  "notification_id": 42,
+  "user_id": 1,
+  "notification_type": "Share",
+  "message": "Task \"Selesaikan Arsitektur Backend\" telah dibagikan kepada Anda (izin: edit)",
+  "is_read": false,
+  "created_at": "2026-11-17T23:45:00+00:00"
+}
+```
+
+### 19.3 Perintah Interaktif WebSocket (Client -> Server)
+Pada koneksi WebSocket (`/api/v1/notifications/ws`), client juga dapat mengirim pesan JSON:
+- **Ping**: `{"type": "ping"}` $\rightarrow$ Dibalas `{"event": "pong"}`
+- **Mark Read**: `{"type": "mark_read", "notification_id": 42}` $\rightarrow$ Menandai notifikasi telah dibaca di database dan membalas `{"event": "notification.updated", "notification_id": 42, "is_read": true}`
 
 ---
 

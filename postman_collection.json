@@ -179,6 +179,114 @@
               "type": "noauth"
             }
           }
+        },
+        {
+          "name": "Readiness Probe (DB & Drain Check)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/health/ready",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health",
+                "ready"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "System Metrics (JSON)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/metrics",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "metrics"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "System Metrics (Prometheus Format)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "text/plain",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/metrics?format=prometheus",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "metrics"
+              ],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "prometheus"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Seed Demo Data (Idempotent)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seed/demo",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seed",
+                "demo"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
         }
       ]
     },
@@ -310,6 +418,69 @@
               }
             }
           ]
+        },
+        {
+          "name": "Login (Demo Account)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    var res = pm.response.json();",
+                  "    if (res.access_token) {",
+                  "        pm.collectionVariables.set(\"token\", res.access_token);",
+                  "        pm.environment.set(\"token\", res.access_token);",
+                  "        console.log(\"Token saved to collection & environment\");",
+                  "    }",
+                  "    if (res.refresh_token) {",
+                  "        pm.collectionVariables.set(\"refresh_token\", res.refresh_token);",
+                  "        pm.environment.set(\"refresh_token\", res.refresh_token);",
+                  "        console.log(\"Refresh token saved to collection & environment\");",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"demo_user\",\n  \"password\": \"Password123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
         },
         {
           "name": "Refresh Token",
@@ -3750,6 +3921,52 @@
                 {
                   "key": "notification_id",
                   "value": "{{notification_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Subscribe Real-time SSE Stream",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "text/event-stream",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/stream",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "stream"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Connect Real-time WebSocket",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications/ws?token={{token}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "ws"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{token}}"
                 }
               ]
             }

@@ -25,7 +25,11 @@ pub fn global_rate_limiter() -> impl Handler {
     )
     .add_headers(true)
     .skipper(|req: &mut Request, _: &Depot| {
-        cfg!(test) || req.uri().path().ends_with("/health")
+        let path = req.uri().path();
+        cfg!(test)
+            || path.ends_with("/health")
+            || path.ends_with("/health/ready")
+            || path.ends_with("/metrics")
     })
 }
 

@@ -13,23 +13,24 @@ pub struct AuthenticatedUser {
 
 #[handler]
 pub async fn auth_middleware(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    let auth_header = match req.header::<String>("Authorization") {
-        Some(h) => h,
-        None => {
-            res.render(ApiError::Unauthorized("Authorization header missing".to_string()));
+    let token_str = if let Some(auth_header) = req.header::<String>("Authorization") {
+        if let Some(stripped) = auth_header.strip_prefix("Bearer ") {
+            stripped.trim().to_string()
+        } else {
+            res.render(ApiError::Unauthorized(
+                "Invalid token format, expected 'Bearer <token>'".to_string(),
+            ));
             return;
         }
-    };
-
-    let token = if let Some(stripped) = auth_header.strip_prefix("Bearer ") {
-        stripped.trim()
+    } else if let Some(query_token) = req.query::<String>("token") {
+        query_token.trim().to_string()
     } else {
-        res.render(ApiError::Unauthorized("Invalid token format, expected 'Bearer <token>'".to_string()));
+        res.render(ApiError::Unauthorized("Authorization header missing".to_string()));
         return;
     };
 
     let settings = Settings::load();
-    match verify_access_token(token, &settings.jwt_secret) {
+    match verify_access_token(&token_str, &settings.jwt_secret) {
         Ok(claims) => {
             depot.insert_typed(AuthenticatedUser {
                 user_id: claims.sub,

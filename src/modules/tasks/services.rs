@@ -7,14 +7,15 @@ use sea_orm::{
 use crate::common::response::{PageMeta, PaginatedResponse};
 use crate::core::db::connection::try_get_db_connection;
 use crate::entity::sea_orm_active_enums::{
-    RecurrenceFrequencyEnum, SharePermissionEnum, VoteTypeEnum,
+    NotificationTypeEnum, RecurrenceFrequencyEnum, SharePermissionEnum, VoteTypeEnum,
 };
 use crate::entity::{
     activity_logs, external_apps, locations, notes, recurring_tasks, reminders, subtasks,
     tags, task_attachments, task_categories, task_category_assignment, task_comments,
     task_external_integration, task_history, task_label_assignment, task_labels,
     task_labels_history, task_location, task_notes_history, task_priorities,
-    task_priority_history, task_sharing, task_statuses, task_tags, task_votes, tasks, users,
+    task_priority_history, task_sharing, task_statuses, task_tags, task_votes, tasks,
+    user_notifications, users,
 };
 use crate::error::api_error::ApiError;
 use crate::modules::tasks::dtos::*;
@@ -779,7 +780,7 @@ impl TaskService {
     ) -> Result<task_comments::Model, ApiError> {
         let db = try_get_db_connection()
             .ok_or_else(|| ApiError::Internal("Database belum terhubung".into()))?;
-        let (_, level) = Self::check_access(db, user_id, task_id).await?;
+        let (task, level) = Self::check_access(db, user_id, task_id).await?;
         if level == TaskAccessLevel::View {
             return Err(ApiError::Forbidden(
                 "Hanya user dengan izin comment atau edit yang dapat berkomentar".into(),
@@ -799,6 +800,24 @@ impl TaskService {
         };
 
         let created = new_comment.insert(db).await?;
+
+        if task.user_id != user_id {
+            let notif = user_notifications::ActiveModel {
+                user_id: Set(task.user_id),
+                message: Set(format!(
+                    "Komentar baru pada task \"{}\"",
+                    task.title
+                )),
+                notification_type: Set(NotificationTypeEnum::Comment),
+                is_read: Set(false),
+                created_at: Set(Utc::now().into()),
+                ..Default::default()
+            };
+            if let Ok(inserted_notif) = notif.insert(db).await {
+                crate::core::realtime::notification_hub().publish_model(&inserted_notif);
+            }
+        }
+
         Ok(created)
     }
 
@@ -1321,12 +1340,11 @@ impl TaskService {
             .one(db)
             .await?;
 
-        match existing {
+        let result = match existing {
             Some(ex) => {
                 let mut active: task_sharing::ActiveModel = ex.into();
                 active.permission = Set(permission);
-                let updated = active.update(db).await?;
-                Ok(updated)
+                active.update(db).await?
             }
             None => {
                 let new_share = task_sharing::ActiveModel {
@@ -1334,10 +1352,26 @@ impl TaskService {
                     user_id: Set(target_user_id),
                     permission: Set(permission),
                 };
-                let created = new_share.insert(db).await?;
-                Ok(created)
+                new_share.insert(db).await?
             }
+        };
+
+        let notif = user_notifications::ActiveModel {
+            user_id: Set(target_user_id),
+            message: Set(format!(
+                "Task \"{}\" telah dibagikan kepada Anda (izin: {})",
+                task.title, perm_str
+            )),
+            notification_type: Set(NotificationTypeEnum::Share),
+            is_read: Set(false),
+            created_at: Set(Utc::now().into()),
+            ..Default::default()
+        };
+        if let Ok(inserted_notif) = notif.insert(db).await {
+            crate::core::realtime::notification_hub().publish_model(&inserted_notif);
         }
+
+        Ok(result)
     }
 
     pub async fn delete_share(
