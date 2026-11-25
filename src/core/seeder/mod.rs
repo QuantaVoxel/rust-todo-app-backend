@@ -491,6 +491,7 @@ pub async fn seed_demo_data(db: &DatabaseConnection) -> Result<DemoSeedSummary, 
     .await;
 
     let counts = compute_counts(db, demo_user.user_id).await?;
+    crate::core::cache::app_cache().invalidate_all().await;
 
     Ok(DemoSeedSummary {
         already_seeded: false,

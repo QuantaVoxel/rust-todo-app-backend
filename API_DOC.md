@@ -61,8 +61,24 @@ File yang diunggah dapat diakses langsung oleh browser atau klien HTTP pada rute
 - **Liveness Probe (`GET /api/v1/health`)**: Mengembalikan `200 OK` (`"OK"`).
 - **Readiness Probe (`GET /api/v1/health/ready`)**: Memeriksa status *shutdown drain* dan latensi ping database PostgreSQL (`latency_ms`). Mengembalikan `200 OK` saat siap atau `503 Service Unavailable` saat *degraded* / *shutting down*.
 - **System Metrics (`GET /api/v1/metrics`)**:
-  - Format JSON (default): Menyajikan `uptime_seconds`, `total_http_requests`, `active_realtime_connections`, `worker_ticks_total`, `worker_reminders_processed_total`, `worker_recurring_spawned_total`, dan `database_connected`.
+  - Format JSON (default): Menyajikan `uptime_seconds`, `total_http_requests`, `active_realtime_connections`, `worker_ticks_total`, `worker_reminders_processed_total`, `worker_recurring_spawned_total`, `cache_hits_total`, `cache_misses_total`, `cache_invalidations_total`, dan `database_connected`.
   - Format Prometheus (`GET /api/v1/metrics?format=prometheus` atau header `Accept: text/plain`): Menyajikan metrik standar kompatibel scraper Prometheus.
+
+### In-Memory Caching (Moka & ETag / Last-Modified)
+Sistem mengimplementasikan *caching* dua lapis di [src/core/cache/mod.rs](file:///home/venom/RustroverProjects/todo-app-v2/src/core/cache/mod.rs) dengan TTL 5 menit (`300 detik`):
+1. **HTTP Response Cache & ETag (`salvo::cache::MokaStore` + `CachingHeaders`)**:
+   - Diterapkan pada endpoint referensi `/api/v1/statuses`, `/api/v1/priorities`, `/api/v1/external-apps`, dan `/api/v1/enums`.
+   - Mendukung negosiasi header `ETag` / `If-None-Match` dengan respons otomatis `304 Not Modified`.
+2. **Application Data Cache (`AppDataCache`) dengan Auto-Invalidation**:
+   - Menyimpan hasil query `/api/v1/tags`, `/api/v1/categories`, `/api/v1/labels`, dan lookups di memori.
+   - Otomatis melakukan invalidasi (*cache eviction*) setiap kali ada operasi `POST`, `PATCH`, atau `DELETE` pada Tags, Categories, Labels, maupun saat menjalankan Demo Seeder.
+   - Statistik `cache_hits_total`, `cache_misses_total`, dan `cache_invalidations_total` dipantau secara real-time di `/api/v1/metrics`.
+
+### Dockerization & Container Orchestration
+Tersedia konfigurasi kontainerisasi siap produksi:
+- [Dockerfile](file:///home/venom/RustroverProjects/todo-app-v2/Dockerfile): Multi-stage build (`rust:1-bookworm` builder + `debian:bookworm-slim` runtime non-root `appuser` dengan `HEALTHCHECK`).
+- [docker-compose.yml](file:///home/venom/RustroverProjects/todo-app-v2/docker-compose.yml): Orkestrasi **PostgreSQL 16** dan **Todo App Backend** dengan migrasi otomatis, seeding otomatis (`SEED_DEMO_DATA=true`), dan persistent volume `./uploads`.
+- [.dockerignore](file:///home/venom/RustroverProjects/todo-app-v2/.dockerignore) & [.env.example](file:///home/venom/RustroverProjects/todo-app-v2/.env.example).
 
 ### Database Seeder untuk Demo & Pengujian Frontend (`POST /api/v1/seed/demo`)
 Untuk memudahkan pengujian frontend maupun eksplorasi via Postman tanpa harus membuat data dari nol, tersedia seeder **idempotent**:

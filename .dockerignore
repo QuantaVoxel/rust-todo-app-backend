@@ -1,0 +1,10 @@
+target/
+.git/
+.gitignore
+.idea/
+.vscode/
+.agents/
+.env
+uploads/*
+!uploads/.gitkeep
+*.log

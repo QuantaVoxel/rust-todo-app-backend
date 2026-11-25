@@ -3,6 +3,7 @@ use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::time::Instant;
 use serde::Serialize;
 
+use crate::core::cache::{cache_hits_total, cache_invalidations_total, cache_misses_total};
 use crate::core::db::connection::try_get_db_connection;
 use crate::core::realtime::notification_hub;
 
@@ -56,6 +57,9 @@ pub struct SystemMetricsSnapshot {
     pub worker_ticks_total: u64,
     pub worker_reminders_processed_total: u64,
     pub worker_recurring_spawned_total: u64,
+    pub cache_hits_total: u64,
+    pub cache_misses_total: u64,
+    pub cache_invalidations_total: u64,
     pub database_connected: bool,
 }
 
@@ -74,6 +78,9 @@ pub async fn collect_metrics_snapshot() -> SystemMetricsSnapshot {
         worker_ticks_total: WORKER_TICKS_TOTAL.load(Ordering::Relaxed),
         worker_reminders_processed_total: WORKER_REMINDERS_PROCESSED_TOTAL.load(Ordering::Relaxed),
         worker_recurring_spawned_total: WORKER_RECURRING_SPAWNED_TOTAL.load(Ordering::Relaxed),
+        cache_hits_total: cache_hits_total(),
+        cache_misses_total: cache_misses_total(),
+        cache_invalidations_total: cache_invalidations_total(),
         database_connected: db_connected,
     }
 }
@@ -102,6 +109,15 @@ impl SystemMetricsSnapshot {
              # HELP todo_app_worker_recurring_spawned_total Total recurring task instances spawned by worker\n\
              # TYPE todo_app_worker_recurring_spawned_total counter\n\
              todo_app_worker_recurring_spawned_total {}\n\
+             # HELP todo_app_cache_hits_total Total in-memory data cache hits\n\
+             # TYPE todo_app_cache_hits_total counter\n\
+             todo_app_cache_hits_total {}\n\
+             # HELP todo_app_cache_misses_total Total in-memory data cache misses\n\
+             # TYPE todo_app_cache_misses_total counter\n\
+             todo_app_cache_misses_total {}\n\
+             # HELP todo_app_cache_invalidations_total Total in-memory data cache invalidations on write\n\
+             # TYPE todo_app_cache_invalidations_total counter\n\
+             todo_app_cache_invalidations_total {}\n\
              # HELP todo_app_database_connected Database connectivity status (1 = connected, 0 = disconnected)\n\
              # TYPE todo_app_database_connected gauge\n\
              todo_app_database_connected {}\n",
@@ -112,6 +128,9 @@ impl SystemMetricsSnapshot {
             self.worker_ticks_total,
             self.worker_reminders_processed_total,
             self.worker_recurring_spawned_total,
+            self.cache_hits_total,
+            self.cache_misses_total,
+            self.cache_invalidations_total,
             if self.database_connected { 1 } else { 0 },
         )
     }
@@ -137,12 +156,16 @@ mod tests {
             worker_ticks_total: 1,
             worker_reminders_processed_total: 2,
             worker_recurring_spawned_total: 1,
+            cache_hits_total: 5,
+            cache_misses_total: 2,
+            cache_invalidations_total: 1,
             database_connected: true,
         };
 
         let prom = snapshot.to_prometheus_text();
         assert!(prom.contains("todo_app_http_requests_total"));
         assert!(prom.contains("todo_app_realtime_connections_active 3"));
+        assert!(prom.contains("todo_app_cache_hits_total 5"));
         assert!(prom.contains("todo_app_database_connected 1"));
     }
 }

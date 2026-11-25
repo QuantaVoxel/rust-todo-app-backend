@@ -3,25 +3,39 @@ use salvo::prelude::*;
 use sea_orm::{EntityTrait, QueryOrder};
 
 use crate::common::response::ApiResponse;
+use crate::core::cache::app_cache;
 use crate::core::db::connection::try_get_db_connection;
 use crate::entity::{external_apps, task_priorities, task_statuses};
 use crate::error::api_error::ApiError;
 
-#[endpoint(tags("Lookups"), summary = "Get list of task statuses")]
+#[endpoint(tags("Lookups"), summary = "Get list of task statuses (cached)")]
 pub async fn get_statuses(_req: &mut Request, res: &mut Response) {
+    if let Some(cached) = app_cache().get_statuses().await {
+        res.render(Json(ApiResponse::new(cached)));
+        return;
+    }
+
     let Some(db) = try_get_db_connection() else {
         res.render(ApiError::Internal("Database belum terhubung".into()));
         return;
     };
 
     match task_statuses::Entity::find().all(db).await {
-        Ok(statuses) => res.render(Json(ApiResponse::new(statuses))),
+        Ok(statuses) => {
+            app_cache().set_statuses(statuses.clone()).await;
+            res.render(Json(ApiResponse::new(statuses)));
+        }
         Err(err) => res.render(ApiError::Database(err)),
     }
 }
 
-#[endpoint(tags("Lookups"), summary = "Get list of task priorities")]
+#[endpoint(tags("Lookups"), summary = "Get list of task priorities (cached)")]
 pub async fn get_priorities(_req: &mut Request, res: &mut Response) {
+    if let Some(cached) = app_cache().get_priorities().await {
+        res.render(Json(ApiResponse::new(cached)));
+        return;
+    }
+
     let Some(db) = try_get_db_connection() else {
         res.render(ApiError::Internal("Database belum terhubung".into()));
         return;
@@ -32,20 +46,31 @@ pub async fn get_priorities(_req: &mut Request, res: &mut Response) {
         .all(db)
         .await
     {
-        Ok(priorities) => res.render(Json(ApiResponse::new(priorities))),
+        Ok(priorities) => {
+            app_cache().set_priorities(priorities.clone()).await;
+            res.render(Json(ApiResponse::new(priorities)));
+        }
         Err(err) => res.render(ApiError::Database(err)),
     }
 }
 
-#[endpoint(tags("Lookups"), summary = "Get supported external applications")]
+#[endpoint(tags("Lookups"), summary = "Get supported external applications (cached)")]
 pub async fn get_external_apps(_req: &mut Request, res: &mut Response) {
+    if let Some(cached) = app_cache().get_external_apps().await {
+        res.render(Json(ApiResponse::new(cached)));
+        return;
+    }
+
     let Some(db) = try_get_db_connection() else {
         res.render(ApiError::Internal("Database belum terhubung".into()));
         return;
     };
 
     match external_apps::Entity::find().all(db).await {
-        Ok(apps) => res.render(Json(ApiResponse::new(apps))),
+        Ok(apps) => {
+            app_cache().set_external_apps(apps.clone()).await;
+            res.render(Json(ApiResponse::new(apps)));
+        }
         Err(err) => res.render(ApiError::Database(err)),
     }
 }

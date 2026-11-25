@@ -2,6 +2,7 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder, Set,
 };
 
+use crate::core::cache::app_cache;
 use crate::core::db::connection::try_get_db_connection;
 use crate::entity::{
     tags, task_categories, task_category_assignment, task_label_assignment, task_labels, task_tags,
@@ -17,12 +18,16 @@ impl ClassificationService {
     // ----------------------------------------------------
 
     pub async fn list_tags() -> Result<Vec<tags::Model>, ApiError> {
+        if let Some(cached) = app_cache().get_tags().await {
+            return Ok(cached);
+        }
         let db = try_get_db_connection()
             .ok_or_else(|| ApiError::Internal("Database belum terhubung".into()))?;
         let items = tags::Entity::find()
             .order_by_asc(tags::Column::TagId)
             .all(db)
             .await?;
+        app_cache().set_tags(items.clone()).await;
         Ok(items)
     }
 
@@ -46,6 +51,7 @@ impl ClassificationService {
             ..Default::default()
         };
         let created = new_tag.insert(db).await?;
+        app_cache().invalidate_tags().await;
         Ok(created)
     }
 
@@ -74,6 +80,7 @@ impl ClassificationService {
         let mut active: tags::ActiveModel = tag.into();
         active.name = Set(name);
         let updated = active.update(db).await?;
+        app_cache().invalidate_tags().await;
         Ok(updated)
     }
 
@@ -98,6 +105,7 @@ impl ClassificationService {
         }
 
         tags::Entity::delete_by_id(tag_id).exec(db).await?;
+        app_cache().invalidate_tags().await;
         Ok(())
     }
 
@@ -106,12 +114,16 @@ impl ClassificationService {
     // ----------------------------------------------------
 
     pub async fn list_categories() -> Result<Vec<task_categories::Model>, ApiError> {
+        if let Some(cached) = app_cache().get_categories().await {
+            return Ok(cached);
+        }
         let db = try_get_db_connection()
             .ok_or_else(|| ApiError::Internal("Database belum terhubung".into()))?;
         let items = task_categories::Entity::find()
             .order_by_asc(task_categories::Column::CategoryId)
             .all(db)
             .await?;
+        app_cache().set_categories(items.clone()).await;
         Ok(items)
     }
 
@@ -138,6 +150,7 @@ impl ClassificationService {
             ..Default::default()
         };
         let created = new_cat.insert(db).await?;
+        app_cache().invalidate_categories().await;
         Ok(created)
     }
 
@@ -174,6 +187,7 @@ impl ClassificationService {
             active.description = Set(dto.description);
         }
         let updated = active.update(db).await?;
+        app_cache().invalidate_categories().await;
         Ok(updated)
     }
 
@@ -198,6 +212,7 @@ impl ClassificationService {
         }
 
         task_categories::Entity::delete_by_id(category_id).exec(db).await?;
+        app_cache().invalidate_categories().await;
         Ok(())
     }
 
@@ -206,12 +221,16 @@ impl ClassificationService {
     // ----------------------------------------------------
 
     pub async fn list_labels() -> Result<Vec<task_labels::Model>, ApiError> {
+        if let Some(cached) = app_cache().get_labels().await {
+            return Ok(cached);
+        }
         let db = try_get_db_connection()
             .ok_or_else(|| ApiError::Internal("Database belum terhubung".into()))?;
         let items = task_labels::Entity::find()
             .order_by_asc(task_labels::Column::LabelId)
             .all(db)
             .await?;
+        app_cache().set_labels(items.clone()).await;
         Ok(items)
     }
 
@@ -235,6 +254,7 @@ impl ClassificationService {
             ..Default::default()
         };
         let created = new_lbl.insert(db).await?;
+        app_cache().invalidate_labels().await;
         Ok(created)
     }
 
@@ -266,6 +286,7 @@ impl ClassificationService {
         let mut active: task_labels::ActiveModel = lbl.into();
         active.name = Set(name);
         let updated = active.update(db).await?;
+        app_cache().invalidate_labels().await;
         Ok(updated)
     }
 
@@ -290,6 +311,7 @@ impl ClassificationService {
         }
 
         task_labels::Entity::delete_by_id(label_id).exec(db).await?;
+        app_cache().invalidate_labels().await;
         Ok(())
     }
 }

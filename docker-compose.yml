@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: todo-app-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-todo_app}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-todo_app}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  todo-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: todo-app-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8080
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-todo_app}
+      JWT_SECRET: ${JWT_SECRET:-production_jwt_secret_key_change_me_please_987654321}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-3600}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-2592000}
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-true}
+      RUST_LOG: ${RUST_LOG:-info}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    volumes:
+      - ./uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/api/v1/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  postgres_data:
